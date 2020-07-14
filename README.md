@@ -8,3 +8,4 @@ With TurtleTips, the more computationally-expensive side of syncing your wallet 
 1. Clone git locally
 2. Open terminal in local folder
 3. Run `npm run watch` to begin debugging
+4. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the created `dist` folder

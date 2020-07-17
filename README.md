@@ -5,14 +5,7 @@ TurtleTips is a chrome-based TurtleCoin web wallet plugin that lets you send and
 With TurtleTips, the more computationally-expensive side of syncing your wallet is done for you on the backend, leaving less for the front-end wallet plugin to do, and in turn, letting you sync your wallet faster than ever before. Blocks and transactions are constantly scanned by the backend service for any inputs or outputs belonging to your wallet's public spend key, and that data is stored server-side. Once these inputs and outputs are sent to your installed plugin, they are then converted into spendable funds, which you can then transact as you please, knowing all the while that your private spend key never left the safety of your personal device.
 
 ## Setup
-1. Clone git locally
-2. Open terminal in local folder
-3. Run `npm run watch` to begin debugging
-4. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the created `dist` folder
-
-## Lay of the Land
-Background operations, including any operations that take any considerable amount of time should be written into `background.ts`, and the core functionality that this script utilizes is in `lib/`.
-
-Any DOM-level content affecting a user's current webpage is accessible via `contentscript.ts`.
-
-Visual UI/UX elements for the plugin's pop-up window are in `popup/`.
+1. Ensure TurtleTips backend is running.
+2. Create a file named `config.json` in the `src/` directory and copy the contents of `example.config.json` into this new file. Modify as needed.
+3. Run `npm run watch` to begin debugging.
+4. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the newly created `dist` folder.

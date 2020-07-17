@@ -17,6 +17,6 @@ export function Error(Message:string) {
 
 // Hashes an arbitrary string
 export function Hash(Value:string) {
-    let Hex = StringToHex(Value);
+    let Hex = Buffer.from(Value).toString("hex");
     return TurtleCoin.Crypto.cn_fast_hash(Hex);
 }

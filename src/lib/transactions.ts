@@ -64,15 +64,15 @@ export async function Create(Destinations:Transfer[]) {
             let EstimatedAmount: number = TransactionAmount + Fee;
             if (InputTotal >= EstimatedAmount) {
                 // Request random outputs from the network
-                let Amounts = Inputs.map(Input => Input.amount);
                 let RandomOutputs:Interfaces.RandomOutput[][] = [];
-                RandomOutputs.push(await Network.GetRandomOutputs(Amounts));
+                RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
                 let Transaction = TurtleCoin.Utils.createTransaction(Outputs, Inputs,
                     RandomOutputs, Config.Mixin, Fee);
                 return Transaction;
             }
         }
     }
+    return undefined;
 }
 
 // Courtesy of zpalmtree from turtlecoin-wallet-backend-js:

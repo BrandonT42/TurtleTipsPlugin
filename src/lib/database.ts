@@ -52,6 +52,7 @@ export async function StoreInputs(Inputs:Input[]):Promise<number> {
 
     // Iterate over each input
     Inputs.forEach(async Input => {
+        console.log("Storing input " + Input.KeyImage);
         // Check for balance change
         let ExistingInput = await InputStore.get(Input.KeyImage);
         if (ExistingInput != undefined) {
@@ -96,6 +97,7 @@ export async function SpendInputs(KeyImages:string[], Height:number):Promise<num
         // Ensure input exists and is not already spent
         let Input = await InputStore.get(KeyImage);
         if (Input != undefined && Input.SpentHeight === 0) {
+            console.log("Spending input " + KeyImage);
             Input.SpentHeight = Height;
             BalanceChange -= Input.Amount;
             InputStore.put(Input);
@@ -126,5 +128,6 @@ export async function Clear():Promise<void> {
     let Transaction = DB.transaction("Inputs", "readwrite");
     let InputStore = Transaction.objectStore("Inputs");
     InputStore.clear();
+    console.log("Database cleared");
     return await Transaction.done;
 }

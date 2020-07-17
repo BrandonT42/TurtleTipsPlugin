@@ -13,28 +13,35 @@ export let Info:WalletInfo;
 // Logs into an existing wallet
 export async function Login(Password:string) {
     return new Promise(async Resolve => {
-        chrome.storage.local.get(["password", "wallet"], async Response => {
-            // Verify wallet exists
-            if (!Response["wallet"] || Response["wallet"] == undefined) {
-                Resolve(false);
-            }
+        chrome.storage.local.get([
+            "password", "address", "balance", "height", "registered", "sk", "pk", "sync"
+        ], async Response => {
+            // TODO - encrypt keys in local storage for extra layer of security,
+            // even if I don't think you can access that storage outside of the plugin's context
 
             // Verify password
             let HashedPassword = Utils.Hash(Password);
-            if (Response["password"] !== HashedPassword) {
-                Resolve(false);
+            if (Response["password"] && Response["password"] === HashedPassword) {
+                // Cache wallet info
+                Info = {
+                    Address: Response["address"],
+                    Balance: Response["balance"],
+                    Height: Response["height"],
+                    Registered: Response["registered"],
+                    Keys: new KeyPair(Response["pk"], Response["sk"])
+                }
+                Sync.ResetHeight(Response["sync"]);
+                console.log("Logged into wallet with key " + Info.Keys.publicKey);
+                Resolve(true);
             }
-
-            // Cache wallet info
-            Info = Response["wallet"];
-            console.log("Logged into wallet with key " + Info.Keys.publicKey);
-            Resolve(true);
+            else Resolve(false);
         });
     });
 }
 
 // Logs out of a wallet and clears currently cached data
 export async function Logout() {
+    await Save();
     Info = undefined;
     console.log("Logged out of wallet");
 }
@@ -45,9 +52,14 @@ export async function Save() {
         // Saves wallet data to local storage
         console.log("Saving wallet");
         chrome.storage.local.set({
-            wallet: Info,
+            address: Info.Address,
+            balance: Info.Balance,
+            height: Info.Height,
+            registered: Info.Registered,
+            sk: Info.Keys.privateKey,
+            pk: Info.Keys.publicKey,
             sync: Sync.Height
-        }, () => Resolve(true));
+        }, () => Resolve());
     });
 }
 
@@ -68,10 +80,19 @@ export async function New(Password:string) {
                     Registered: false
                 };
 
+                // Reset sync height
+                Sync.ResetHeight(Network.Height);
+
                 // Save wallet data and new password to local storage
                 console.log("Created new wallet with key " + Info.Keys.publicKey);
                 chrome.storage.local.set({
-                    wallet: Info,
+                    address: Info.Address,
+                    balance: Info.Balance,
+                    height: Info.Height,
+                    registered: Info.Registered,
+                    sk: Info.Keys.privateKey,
+                    pk: Info.Keys.publicKey,
+                    sync: Sync.Height,
                     password: Utils.Hash(Password)
                 }, () => Resolve());
             }
@@ -109,10 +130,19 @@ export async function Restore(Seed:string, Password:string) {
                 Registered: false
             };
 
+            // Reset sync height
+            Sync.ResetHeight(Height);
+
             // Save wallet data and new password to local storage
             console.log("Restored wallet with key " + Info.Keys.publicKey);
             chrome.storage.local.set({
-                wallet: Info,
+                address: Info.Address,
+                balance: Info.Balance,
+                height: Info.Height,
+                registered: Info.Registered,
+                sk: Info.Keys.privateKey,
+                pk: Info.Keys.publicKey,
+                sync: Sync.Height,
                 password: Utils.Hash(Password)
             }, () => Resolve(true));
         }
@@ -126,13 +156,13 @@ export async function Restore(Seed:string, Password:string) {
 export async function AddBalance(Amount:number) {
     if (Amount === 0) return;
     Info.Balance += Amount;
-    await Save();
     console.log("Wallet balance adjusted, new balance: " + Info.Balance);
+    await Save();
 }
 
 // Wipes all stored wallet data
 export async function Wipe() {
     chrome.storage.local.clear();
-    await Sync.Reset();
+    await Sync.ResetHeight();
     console.log("Wallet cache wiped");
 }

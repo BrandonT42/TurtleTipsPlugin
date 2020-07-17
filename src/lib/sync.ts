@@ -9,13 +9,15 @@ import * as Network from "./network";
 // Last known sync height
 export let Height = 0;
 
+// Whether or not the wallet is synced
+export let Synced = false;
+
 // Loads last sync information and begins syncing
 export async function Start(CancellationToken:Async.CancellationToken) {
     // Start wallet sync loop
     Async.Loop(async () => {
         // Check that wallet exists and is already registered with the backend
-        if (Wallet.Info == undefined) {
-            console.log("No wallet to sync, waiting...");
+        if (!Wallet.Info) {
             await Async.Sleep(5000, CancellationToken);
             return;
         }
@@ -29,14 +31,17 @@ export async function Start(CancellationToken:Async.CancellationToken) {
                 await Async.Sleep(5000, CancellationToken);
                 return;
             }
+            else console.log("Registration successful");
         }
 
         // Check if already synced and wait if so
         if (Height >= Backend.Height) {
+            Synced = true;
             console.log("Sync height >= backend height, waiting...");
             await Async.Sleep(5000, CancellationToken);
             return;
         }
+        else Synced = false;
 
         // Calculate sync chunk size
         let ChunkSize = Backend.Height - Height;
@@ -84,16 +89,17 @@ export async function Start(CancellationToken:Async.CancellationToken) {
             BalanceChange += await Database.SpendInputs(KeyImages, Height);
         }
 
-        // Adjust wallet balance
-        Wallet.AddBalance(BalanceChange);
-
         // Set new sync height
         Height += ChunkSize;
         console.log("Synced to height " + Height + " / " + Network.Height);
+
+        // Adjust wallet balance
+        Wallet.AddBalance(BalanceChange);
     }, CancellationToken);
 }
 
 // Resets the sync position to 0
-export async function Reset() {
-    Height = 0;
+export async function ResetHeight(NewHeight?:number) {
+    Height = NewHeight ?? 0;
+    Synced = false;
 }

@@ -25,13 +25,13 @@ export async function Init(CancellationToken:Async.CancellationToken) {
 
 // Gets random outputs for transaction creation
 export async function GetRandomOutputs(Amounts:number[]) {
-    // Create an output array to hold our outputs
-    let RandomOutputs:Interfaces.RandomOutput[] = [];
+    // Check if we even need to request
+    if (Config.Mixin === 0) return [];
 
     // Fetch random outputs for these amounts
     let Response = await Daemon.Post("/randomOutputs", {
         amounts: Amounts,
-        mixin: Config.Mixin
+        mixin: Config.Mixin + 1
     }) as {
         amount:number,
         outs: {
@@ -40,17 +40,18 @@ export async function GetRandomOutputs(Amounts:number[]) {
         }[]
     }[];
 
-    // Parse outputs and push them into our output array
+    // Sort into a proper array of outputs
+    let RandomOutputs:Interfaces.RandomOutput[][] = [];
     Response.forEach(Output => {
+        let Participant:Interfaces.RandomOutput[] = [];
         Output.outs.forEach(Out => {
-            RandomOutputs.push({
+            Participant.push({
                 key: Out.out_key,
                 globalIndex: Out.global_amount_index
             });
         });
+        RandomOutputs.push(Participant);
     });
-
-    // Return parsed random outputs
     return RandomOutputs;
 }
 

@@ -1,0 +1,51 @@
+{
+    "name": "turtletips-plugin",
+    "version": "0.0.1",
+    "description": "TurtleTips is a chrome-based TurtleCoin web wallet plugin that lets you send and receive TRTL, and allows you to tip verified website owners with your TRTL. Unlike other web wallet services, when using TurtleTips, *you* control your spend key, and the backend is cryptographically unable to spend your hard-earned TRTL.",
+    "main": "index.js",
+    "scripts": {
+        "clean": "rm -rf \"dist\" || true; cpy \"manifest.json\" \"dist\"; cpy \"src/assets/*\" \"dist/assets\"",
+        "build:contentscript-background": "NODE_ENV=production webpack --config webpack.config.js",
+        "build:popup": "npm run build --prefix src/popup && cd src/popup/build && cpy * /static/* ../../../dist/popup --parents",
+        "build": "npm run build:contentscript-background",
+        "prebuild": "npm run clean",
+        "watch:contentscript-background": "NODE_ENV=development webpack --config webpack.config.js -w",
+        "watch:popup": "npm run watch:build --prefix src/popup",
+        "watch": "npm-run-all --parallel watch:*",
+        "prewatch": "npm run clean",
+        "zip": "bestzip extension.zip dist/*"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BrandonT42/TurtleTipsPlugin.git"
+    },
+    "keywords": [],
+    "author": "Canti",
+    "license": "AGPL-3.0",
+    "bugs": {
+        "url": "https://github.com/BrandonT42/TurtleTipsPlugin/issues"
+    },
+    "homepage": "https://github.com/BrandonT42/TurtleTipsPlugin#readme",
+    "devDependencies": {
+        "@types/chrome": "0.0.120",
+        "@types/node": "^14.0.23",
+        "awesome-typescript-loader": "^5.2.1",
+        "bestzip": "^2.1.5",
+        "cpy-cli": "^3.1.1",
+        "cra-build-watch": "^3.2.0",
+        "css-loader": "^3.6.0",
+        "mini-css-extract-plugin": "^0.9.0",
+        "node-sass": "^4.14.1",
+        "npm-run-all": "^4.1.5",
+        "sass-loader": "^9.0.2",
+        "ts-node": "^8.10.2",
+        "tslint": "^6.1.2",
+        "typescript": "^3.9.6",
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.12"
+    },
+    "dependencies": {
+        "idb": "^5.0.4",
+        "turtlecoin-utils": "^2.0.1"
+    }
+}

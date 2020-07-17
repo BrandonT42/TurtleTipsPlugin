@@ -9,3 +9,10 @@ With TurtleTips, the more computationally-expensive side of syncing your wallet 
 2. Open terminal in local folder
 3. Run `npm run watch` to begin debugging
 4. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the created `dist` folder
+
+## Lay of the Land
+Background operations, including any operations that take any considerable amount of time should be written into `background.ts`, and the core functionality that this script utilizes is in `lib/`.
+
+Any DOM-level content affecting a user's current webpage is accessible via `contentscript.ts`.
+
+Visual UI/UX elements for the plugin's pop-up window are in `popup/`.

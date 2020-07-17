@@ -1,0 +1,37 @@
+{
+    "manifest_version": 2,
+    "name": "TurtleTips",
+    "icons": {
+        "16": "assets/icon_s.png",
+        "48": "assets/icon_m.png",
+        "128": "assets/icon_l.png"
+    },
+    "version": "0.0.1",
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "storage",
+        "clipboardWrite"
+    ],
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": true
+    },
+    "content_scripts": [
+        {
+            "js": ["contentscript.js"],
+            "css": ["contentscript.css"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "web_accessible_resources": [
+        "assets/*"
+    ],
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "browser_action": {
+        "default_popup": "popup/index.html",
+        "default_title": "TurtleTips"
+    }
+}

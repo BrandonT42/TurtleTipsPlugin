@@ -10,6 +10,16 @@ import { WalletInfo } from "./types";
 // Currently loaded wallet
 export let Info:WalletInfo;
 
+// Checks for whether or not a wallet exists
+export async function CheckForWallet():Promise<boolean> {
+    return new Promise(async Resolve => {
+        chrome.storage.local.get(["sk"], async Response => {
+            if (Response && Response["sk"]) Resolve(true);
+            else Resolve(false);
+        });
+    })
+}
+
 // Logs into an existing wallet
 export async function Login(Password:string):Promise<boolean> {
     return new Promise(async Resolve => {
@@ -62,7 +72,7 @@ export async function Save() {
 }
 
 // Generates a new set of wallet keys and seeds them with the current height
-export async function New(Password:string) {
+export async function New(Password:string):Promise<boolean> {
     return new Promise(Resolve => {
         let WaitForHeight = async () => {
             // Wait for height to sync with network so we can grab a proper creation height
@@ -93,7 +103,7 @@ export async function New(Password:string) {
                     pk: Info.Keys.publicKey,
                     sync: Sync.Height,
                     password: Utils.Hash(Password)
-                }, () => Resolve());
+                }, () => Resolve(true));
             }
             else setTimeout(WaitForHeight, 100);
         }
@@ -102,7 +112,7 @@ export async function New(Password:string) {
 }
 
 // Restores a wallet from a seed consisting of private key + creation height
-export async function Restore(Seed:string, Password:string) {
+export async function Restore(Seed:string, Password:string):Promise<boolean> {
     return new Promise(Resolve => {
         // Check if seed length is valid
         if (Seed.length < 64) Resolve(false);
@@ -163,6 +173,7 @@ export async function AddBalance(Amount:number) {
 
 // Wipes all stored wallet data
 export async function Wipe() {
+    Info = undefined;
     chrome.storage.local.clear();
     await Sync.ResetHeight();
     console.log("Wallet cache wiped");

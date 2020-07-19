@@ -1,13 +1,219 @@
+/* Default body styling */
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    color: #FFFFFF;
+    font-family: "Source Sans Pro", Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    text-align: center;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Popup window styling */
+.App {
+    transition: 450ms;
+    background-image: linear-gradient(45deg, #2d836d 20%, #49c085 60%, #d0e59d);
+}
+
+/* Green gradient background */
+.Fit {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+.Panel {
+    width: 100%;
+    box-shadow: rgba(46, 43, 55, 0.5) 0px 4px 24px 4px;
+    transition: 450ms;
+}
+.Gradient {
+    background-image: linear-gradient(45deg, #2d836d 20%, #49c085 60%, #d0e59d);
+}
+.White {
+    background-color: #FFFFFF;
+}
+
+/* Header */
+.Header {
+    width: 100%;
+    height: 30px;
+    color: #595959;
+    background-color: #FFFFFF;
+}
+
+/* Body */
+.Body {
+    padding: 10px;
+    margin-left: -10px;
+    margin-right: -10px;
+}
+
+/* Header texts */
+h1 {
+    font-size: 24px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    background-color: transparent;
+    margin: 0px;
+}
+h2 {
+    font-size: 14px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    margin: 5px;
+    margin-bottom: 0px;
+    opacity: 0.8;
+}
+h3 {
+    font-family: "Source Sans Pro", Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    margin: 0px;
+    opacity: 0.6;
+}
+
+/* Paragraphs */
+p {
+    margin: 5px;
+}
+
+/* Default button */
+button, button:disabled {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 3.5px;
+    background-clip: padding-box;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 10px;
+    margin: 5px;
+    width: 260px;
+    transition: 500ms;
+}
+button:hover, button:visited, button:active {
+    color: #FFE4B4;
+    border-color: #FFE4B4;
+    transition: 500ms;
+}
+button:focus {
+    outline: 0;
+}
+
+/* Default input */
+input, input:disabled {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 3.5px;
+    background-clip: padding-box;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 10px;
+    margin: 5px;
+    width: 236px;
+    transition: 500ms;
+}
+input:hover, input:active {
+    color: #FFE4B4;
+    border-color: #FFE4B4;
+    transition: 500ms;
+}
+input:focus {
+    border-color: #FFE4B4;
+    outline: 0;
+}
+
+/* TurtleCoin logo */
+.Logo {
+    width: 100px;
+    height: 100px;
+    background-image: url(./assets/turtlecoin_logo.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+}
+
+/* Options icon */
+.OptionsIcon {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    width: 20px;
+    height: 20px;
+    background-image: url(assets/options_icon.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.5;
+    transition: 500ms;
+    z-index: 1;
+}
+.OptionsIcon:hover {
+    opacity: 1;
+}
+
+/* Fades an element in */
+.FadeIn {
+    opacity: 0;
+    animation: FadeIn ease 2000ms;
+    animation-iteration-count: 1; 
+    animation-fill-mode: forwards;
+}
+@keyframes FadeIn {
+    0% {
+        opacity:0;
+		transform: translate3d(0, -20%, 0);
+    }
+    100% {
+        opacity:1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* Hard-coded animation delays */
+.Delay1000 {
+    animation-delay: 100ms;
+}
+.Delay2000 {
+    animation-delay: 200ms;
+}
+.Delay3000 {
+    animation-delay: 300ms;
+}
+.Delay3500 {
+    animation-delay: 350ms;
+}
+.Delay4000 {
+    animation-delay: 400ms;
+}
+.Delay4500 {
+    animation-delay: 450ms;
+}
+
+/* CSSTransition */
+.fade-appear,
+.fade-enter {
+  opacity: 0;
+  z-index: 1;
+}
+.fade-appear-active,
+.fade-enter.fade-enter-active {
+  opacity: 1;
+  transition: opacity 300ms linear 150ms;
+}
+.fade-exit {
+  opacity: 1;
+}
+.fade-exit.fade-exit-active {
+  opacity: 0;
+  transition: opacity 150ms linear;
 }

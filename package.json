@@ -46,6 +46,7 @@
     },
     "dependencies": {
         "@types/crypto-js": "^3.1.47",
+        "@types/history": "^4.7.6",
         "crypto-js": "^4.0.0",
         "idb": "^5.0.4",
         "turtlecoin-utils": "^2.0.2"

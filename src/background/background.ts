@@ -10,7 +10,7 @@ import * as Options from "../lib/options";
 import * as CoinGecko from "../lib/coingecko";
 
 // Cancellation token that can cancel all async operations
-const CancellationToken = new Async.CancellationToken();
+export const CancellationToken = new Async.CancellationToken();
 
 // Begins background operations
 async function Start() {

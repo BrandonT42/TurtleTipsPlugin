@@ -1,40 +1,9 @@
 import * as Network from "./network";
 import * as Wallet from "./wallet";
 import * as Transactions from "./transactions";
+import * as Database from "./database";
 import { Transaction } from "turtlecoin-utils";
-
-// Lists all accepted messages
-export enum Request {
-    // Generates a new key pair
-    CreateKeys,
-
-    // Restores wallet keys from a seed
-    RestoreKeys,
-
-    // Attempts a wallet login
-    Login,
-
-    // Logs out of a wallet
-    Logout,
-
-    // Gets wallet info
-    GetWalletInfo,
-
-    // Requests a domain's registered key
-    RequestDomainKey,
-
-    // Requests a tip to the current domain
-    RequestTip,
-
-    // Requests a withdrawal
-    RequestWithdrawal,
-
-    // Sends a tip or withdrawal transaction
-    SendTransaction,
-
-    // Wipes all stored and cached data
-    Wipe
-}
+import { Request } from "./types";
 
 // Assigns event handlers
 export async function Assign() {
@@ -56,57 +25,84 @@ async function OnSuspend() {
 }
 
 // Runs when a message is sent by another script owned by this extension
-async function OnMessage(Message, Sender, SendResponse) {
+function OnMessage(Message, Sender, SendResponse) {
     // Check message request
-    switch(Message["Request"]) {
+    switch(Message["Request"] as Request) {
+        case Request.CheckForWallet:
+            Wallet.CheckForWallet().then(WalletExists => {
+                console.log(`Wallet ${WalletExists ? "does" : "does not"} exist`);
+                SendResponse(WalletExists);
+            });
+            return true;
+
         case Request.GetWalletInfo:
             SendResponse(Wallet.Info);
+            return true;
 
-        case Request.CreateKeys:
+        case Request.NewKeys:
             let NewWalletPassword = Message["Password"] as string;
-            await Wallet.New(NewWalletPassword);
-            SendResponse(Wallet.Info);
+            Wallet.New(NewWalletPassword).then(() => {
+                SendResponse(Wallet.Info);
+            });
+            return true;
 
         case Request.RestoreKeys:
             let WalletSeed = Message["Seed"] as string;
             let RestoreWalletPassword = Message["Password"] as string;
-            await Wallet.Restore(WalletSeed, RestoreWalletPassword);
-            SendResponse(Wallet.Info);
+            Wallet.Restore(WalletSeed, RestoreWalletPassword).then(Success => {
+                SendResponse({
+                    Success: Success,
+                    Wallet: Wallet.Info
+                });
+            });
+            return true;
 
         case Request.Login:
             let LoginPassword = Message["Password"] as string;
-            await Wallet.Login(LoginPassword);
-            SendResponse(Wallet.Info);
+            Wallet.Login(LoginPassword).then(Success => {
+                SendResponse(Success);
+            });
+            return true;
 
         case Request.Logout:
-            await Wallet.Logout();
-            SendResponse();
+            Wallet.Logout().then(() => {
+                SendResponse();
+            });
+            return true;
 
-        case Request.RequestDomainKey: ;
+        case Request.RequestDomainKey:
+            SendResponse();
+            return true;
 
         case Request.RequestTip:
             let PublicSpendKey = Message["PublicSpendKey"] as string;
             let TipAmount = Message["Amount"] as number;
-            let TipTransaction = await Transactions.Withdraw(PublicSpendKey, TipAmount);
-            SendResponse(TipTransaction);
+            Transactions.Withdraw(PublicSpendKey, TipAmount).then(Transaction => {
+                SendResponse(Transaction);
+            });
+            return true;
 
         case Request.RequestWithdrawal:
             let Address = Message["Address"] as string;
             let WithdrawalAmount = Message["Amount"] as number;
-            let WithdrawalTransaction = await Transactions.Withdraw(Address, WithdrawalAmount);
-            SendResponse(WithdrawalTransaction);
+            Transactions.Withdraw(Address, WithdrawalAmount).then(Transaction => {
+                SendResponse(Transaction);
+            });
+            return true;
 
         case Request.SendTransaction:
             let Transaction = Message["Transaction"] as Transaction;
-            let Success = await Network.SendTransaction(Transaction);
-            SendResponse(Success);
+            Network.SendTransaction(Transaction).then(Success => {
+                SendResponse(Success);
+            })
+            return true;
 
-        case Request.Wipe: ;
+        case Request.Wipe:
+            Wallet.Wipe().then(() => Database.Clear());
+            return true;
 
         default:
             SendResponse();
+            return true;
     }
-
-    // End operation
-    return true;
 }

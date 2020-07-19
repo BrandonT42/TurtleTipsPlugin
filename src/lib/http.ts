@@ -1,17 +1,18 @@
 import * as https from "https";
 import * as http from "http";
 import * as TurtleCoin from "./turtlecoin";
+import * as QueryString from "querystring";
 import { KeyPair } from "turtlecoin-utils";
-import { Error, StringToHex } from "./utils";
+import { StringToHex } from "./utils";
 
 // Handles HTTP API requests
 export class Http {
     private Host:string;
-    private Port:number;
+    private Port?:number;
     private Https:boolean;
 
     // Creates a new connection instance
-    constructor(Host:string, Port:number, Https?:boolean) {
+    constructor(Host:string, Port?:number, Https?:boolean) {
         this.Host = Host;
         this.Port = Port;
         this.Https = Https ?? false;
@@ -44,11 +45,15 @@ export class Http {
                     `${this.Host}:${this.Port}${Method}`, Keys);
             }
 
+            // Form path
+            let Path = Method;
+            Path += Verb === "GET" ? `?${QueryString.encode(Params)}` : "";
+
             // Assign request options
             let Options = {
                 hostname: this.Host,
                 port: this.Port,
-                path: Method,
+                path: Path,
                 method: Verb,
                 headers: {
                     "Content-Type": "application/json",
@@ -62,18 +67,18 @@ export class Http {
     
             // Define how request response is handled
             let Request = (this.Https ? https : http).request(Options, Result => {
-                // If status code does not return OK, reject request
-                if (Result.statusCode != 200) {
-                    Reject(Error("Status code " + Result.statusCode));
-                    return;
-                }
-    
                 // Assemble response packet
                 let Body:any[] = [];
                 Result.on("data", Chunk => {
                     Body.push(Chunk);
                 });
                 Result.on("end", () => {
+                    // If status code does not return OK, reject request
+                    if (Result.statusCode != 200) {
+                        Reject(Error("Status code " + Result.statusCode));
+                        return;
+                    }
+
                     // Attempt to parse JSON reply
                     try {
                         Resolve(JSON.parse(Buffer.concat(Body).toString()));

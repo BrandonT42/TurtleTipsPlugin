@@ -10,6 +10,9 @@ const Daemon = new Http(Config.DaemonHost, Config.DaemonPort, Config.DaemonHttps
 // Last known network height
 export let Height:number = 0;
 
+// Connection status
+export let Connected:boolean = false;
+
 // Initializes network monitor
 export async function Init(CancellationToken:Async.CancellationToken) {
     // Begin height update loop
@@ -18,7 +21,9 @@ export async function Init(CancellationToken:Async.CancellationToken) {
         let Response = await Daemon.Get(Constants.DAEMON_API.HEIGHT);
         if (Response && Response.network_height) {
             Height = Response.network_height;
+            Connected = true;
         }
+        else Connected = false;
         await Async.Sleep(Constants.NETWORK_HEIGHT_INTERVAL);
     }, CancellationToken);
 }

@@ -11,6 +11,9 @@ const Backend = new Http(Config.BackendHost, Config.BackendPort, Config.BackendH
 // Last known backend height
 export let Height:number = 0;
 
+// Connection status
+export let Connected:boolean = false;
+
 // Initializes backend connection
 export async function Init(CancellationToken:Async.CancellationToken) {
     // Begin height update loop
@@ -19,7 +22,9 @@ export async function Init(CancellationToken:Async.CancellationToken) {
         let Response = await Backend.Get(Constants.BACKEND_API.HEIGHT);
         if (Response && Response.height) {
             Height = Response.height;
+            Connected = true;
         }
+        else Connected = false;
         await Async.Sleep(Constants.BACKEND_HEIGHT_INTERVAL);
     }, CancellationToken);
 }
@@ -34,10 +39,11 @@ export async function RegisterSpendKey() {
     // Check if successful
     if (Response && Response.Success && Response.Success === true) {
         Wallet.Info.Registered = true;
+        return true;
     }
 
-    // Check if registration was successful
-    return Wallet.Info.Registered;
+    // Failed to register
+    else return false;
 }
 
 // Gets a chunk of wallet sync data

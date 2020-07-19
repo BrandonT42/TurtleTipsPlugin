@@ -1,4 +1,4 @@
-import { KeyPair, Address } from "turtlecoin-utils"
+import { KeyPair } from "turtlecoin-utils"
 
 // This contains input data which we will store locally
 export type Input = {
@@ -95,4 +95,13 @@ export type SyncData = {
 
     // Outputs to be converted into spendable inputs
     Outputs:Output[];
+}
+
+// An error-able, variable return type interface
+export type Errorable<T> = {
+    Success: false,
+    Error: Error
+} | {
+    Success: true,
+    Value: T
 }

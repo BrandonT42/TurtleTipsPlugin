@@ -11,6 +11,22 @@ export enum DAEMON_API {
     SEND_TRANSACTION = "/transaction"
 };
 
+// CoinGecko API endpoints
+export enum COINGECKO_API {
+    PRICE = "/api/v3/simple/price"
+};
+
+// CoinGecko supported currencies
+export const COINGECKO_CURRENCIES = [
+    "AED", "ARS", "AUD", "BCH", "BDT", "BHD", "BMD", "BNB",
+    "BRL", "BTC", "CAD", "CHF", "CLP", "CNY", "CZK", "DKK",
+    "EOD", "ETH", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS",
+    "INR", "JPY", "KRW", "KWD", "LKR", "LTC", "MMK", "MXN",
+    "MYR", "NOK", "NZD", "PHP", "PKR", "PLN", "RUB", "SAR",
+    "SEK", "SGD", "THB", "TRY", "TWD", "UAH", "USD", "VEF",
+    "VND", "XAG", "XAU", "XDR", "XLM", "XRP", "ZAR"
+];
+
 // The amount of time to wait between checking for cancellation in an async function (in ms)
 export const CANCELLATION_INTERVAL = 100;
 

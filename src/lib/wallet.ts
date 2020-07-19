@@ -11,36 +11,39 @@ import { WalletInfo } from "./types";
 export let Info:WalletInfo;
 
 // Logs into an existing wallet
-export async function Login(Password:string) {
+export async function Login(Password:string):Promise<boolean> {
     return new Promise(async Resolve => {
         chrome.storage.local.get([
-            "password", "address", "balance", "height", "registered", "sk", "pk", "sync"
+            "address", "balance", "height", "registered", "sk", "pk", "sync"
         ], async Response => {
-            // TODO - encrypt keys in local storage for extra layer of security,
-            // even if I don't think you can access that storage outside of the plugin's context
-
-            // Verify password
-            let HashedPassword = Utils.Hash(Password);
-            if (Response["password"] && Response["password"] === HashedPassword) {
+            // Attempt to decrypt private spend key
+            let PrivateKey = Utils.Decrypt(Response["sk"], Password);
+            if (PrivateKey.Success) {
                 // Cache wallet info
                 Info = {
                     Address: Response["address"],
                     Balance: Response["balance"],
                     Height: Response["height"],
                     Registered: Response["registered"],
-                    Keys: new KeyPair(Response["pk"], Response["sk"])
+                    Keys: new KeyPair(Response["pk"], PrivateKey.Value)
                 }
-                Sync.ResetHeight(Response["sync"]);
+                await Sync.ResetHeight(Response["sync"]);
                 console.log("Logged into wallet with key " + Info.Keys.publicKey);
                 Resolve(true);
             }
-            else Resolve(false);
+
+            // Invalid password
+            else {
+                console.log("Failed to open wallet, password incorrect");
+                Resolve(false);
+            }
         });
     });
 }
 
 // Logs out of a wallet and clears currently cached data
 export async function Logout() {
+    // Save wallet, clear cache
     await Save();
     Info = undefined;
     console.log("Logged out of wallet");
@@ -50,14 +53,9 @@ export async function Logout() {
 export async function Save() {
     return new Promise(async Resolve => {
         // Saves wallet data to local storage
-        console.log("Saving wallet");
         chrome.storage.local.set({
-            address: Info.Address,
             balance: Info.Balance,
-            height: Info.Height,
             registered: Info.Registered,
-            sk: Info.Keys.privateKey,
-            pk: Info.Keys.publicKey,
             sync: Sync.Height
         }, () => Resolve());
     });
@@ -85,12 +83,13 @@ export async function New(Password:string) {
 
                 // Save wallet data and new password to local storage
                 console.log("Created new wallet with key " + Info.Keys.publicKey);
+                let EncryptedPrivateKey = Utils.Encrypt(Info.Keys.privateKey, Password);
                 chrome.storage.local.set({
                     address: Info.Address,
                     balance: Info.Balance,
                     height: Info.Height,
                     registered: Info.Registered,
-                    sk: Info.Keys.privateKey,
+                    sk: EncryptedPrivateKey,
                     pk: Info.Keys.publicKey,
                     sync: Sync.Height,
                     password: Utils.Hash(Password)
@@ -135,12 +134,13 @@ export async function Restore(Seed:string, Password:string) {
 
             // Save wallet data and new password to local storage
             console.log("Restored wallet with key " + Info.Keys.publicKey);
+            let EncryptedPrivateKey = Utils.Encrypt(Info.Keys.privateKey, Password);
             chrome.storage.local.set({
                 address: Info.Address,
                 balance: Info.Balance,
                 height: Info.Height,
                 registered: Info.Registered,
-                sk: Info.Keys.privateKey,
+                sk: EncryptedPrivateKey,
                 pk: Info.Keys.publicKey,
                 sync: Sync.Height,
                 password: Utils.Hash(Password)
@@ -154,9 +154,10 @@ export async function Restore(Seed:string, Password:string) {
 
 // Adjust the current wallet balance
 export async function AddBalance(Amount:number) {
-    if (Amount === 0) return;
-    Info.Balance += Amount;
-    console.log("Wallet balance adjusted, new balance: " + Info.Balance);
+    if (Amount > 0) {
+        Info.Balance += Amount;
+        console.log("Wallet balance adjusted, new balance: " + Info.Balance);
+    }
     await Save();
 }
 

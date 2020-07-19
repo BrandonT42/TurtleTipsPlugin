@@ -4,19 +4,31 @@ import * as TurtleCoin from "./turtlecoin";
 import * as Database from "./database";
 import * as Wallet from "./wallet";
 import * as Constants from "./constants";
-import { Interfaces } from "turtlecoin-utils";
-import { Transfer } from "./types";
+import { Interfaces, Address as Addresses, Transaction } from "turtlecoin-utils";
+import { Transfer, Errorable } from "./types";
 
 // Creates a new transaction that can be broadcast to the network
-export async function Create(Destinations:Transfer[]) {
-    // Generate transaction outputs
+async function Create(Destinations:Transfer[], PaymentId?:string):Promise<Errorable<Transaction>> {
+    // Validate payment id
+    if (PaymentId && (PaymentId.length != 64 || !PaymentId.match("-?[0-9a-fA-F]+"))) {
+        return { Success: false, Error: Error("Invalid payment id") };
+    }
+
+    // Generate transaction outputs and validate destinations
     let Outputs:Interfaces.GeneratedOutput[] = [];
     let TransactionAmount = 0;
     Destinations.forEach(Destination => {
-        let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(
-            Destination.Address, Destination.Amount);
-        Outputs = Outputs.concat(GeneratedOutputs);
-        TransactionAmount += Destination.Amount;
+        // Attempt to generate outputs
+        try {
+            let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(
+                Destination.Address, Destination.Amount);
+            Outputs = Outputs.concat(GeneratedOutputs);
+            TransactionAmount += Destination.Amount;
+        }
+        // Failed to generate outputs from transfer array
+        catch {
+            return { Success: false, Error: Error("Invalid transfers array, could not generate outputs") };
+        }
     });
 
     // Get unspent inputs
@@ -48,7 +60,7 @@ export async function Create(Destinations:Transfer[]) {
             let Change = InputTotal - TransactionAmount;
 
             // Estimate transaction fee and subtract from change
-            let TransactionSize = estimateTransactionSize(Config.Mixin, Inputs.length, Outputs.length);
+            let TransactionSize = EstimateTransactionSize(Config.Mixin, Inputs.length, Outputs.length);
             let Fee = Math.ceil(TransactionSize / 256) * Constants.FEE_PER_BYTE;
             Change -= Fee;
             if (Change < 0) continue;
@@ -66,17 +78,96 @@ export async function Create(Destinations:Transfer[]) {
                 // Request random outputs from the network
                 let RandomOutputs:Interfaces.RandomOutput[][] = [];
                 RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
-                let Transaction = TurtleCoin.Utils.createTransaction(Outputs, Inputs,
-                    RandomOutputs, Config.Mixin, Fee);
-                return Transaction;
+
+                // Attempt to create transaction
+                try {
+                    let Transaction = await TurtleCoin.Utils.createTransaction(Outputs, Inputs,
+                        RandomOutputs, Config.Mixin, Fee, PaymentId);
+                    return { Success: true, Value: Transaction };
+                }
+                catch (Error) {
+                    return { Success: false, Error: Error };
+                }
             }
         }
     }
-    return undefined;
+
+    // Insufficient balance after taking into account fees
+    return { Success: false, Error: Error("Insufficient balance") };
+}
+
+// Creates a new tip transaction
+export async function Tip(PublicSpendKey:string, Amount:number):Promise<Errorable<Transaction>> {
+    // Check if wallet contains sufficient balance
+    if (Wallet.Info.Balance < Amount) {
+        return { Success: false, Error: Error("Insufficient balance") };
+    }
+
+    // Form destination transfer array
+    let Transfers:Transfer[] = [];
+    try {
+        // Create destination address
+        let Address = Addresses.fromPublicKeys(PublicSpendKey, Config.PublicViewKey);
+
+        // Create transfer
+        Transfers.push({
+            Address: Address.address,
+            Amount: Amount
+        });
+    }
+
+    // Failed to create destination transfer
+    catch {
+        return { Success: false, Error: Error("Invalid destination address") };
+    }
+
+    // Attempt to create transaction
+    return await Create(Transfers);
+}
+
+// Creates a new withdrawal transaction
+export async function Withdraw(Address:string, Amount:number):Promise<Errorable<Transaction>> {
+    // Check if withdrawal amount meets minimum
+    if (Amount < Config.MinimumWithdrawal) {
+        return { Success: false, Error: Error("Amount is less than withdrawal minimum") };
+    }
+
+    // Check if wallet contains sufficient balance
+    let DonationAmount = Amount * Config.DonationPercentage;
+    if (Wallet.Info.Balance < Amount + DonationAmount) {
+        return { Success: false, Error: Error("Insufficient balance") };
+    }
+
+    // Form destination transfer array
+    let Transfers:Transfer[] = [];
+    try {
+        // Create destination address
+        let Destination = Addresses.fromAddress(Address);
+
+        // Create transfer
+        Transfers.push({
+            Address: Destination.address,
+            Amount: Amount
+        });
+    }
+
+    // Invalid address supplied
+    catch {
+        return { Success: false, Error: Error("Invalid withdrawal address") };
+    }
+
+    // Add donation transfer
+    Transfers.push({
+        Address: Config.DonationAddress,
+        Amount: DonationAmount
+    });
+
+    // Attempt to create transaction
+    return await Create(Transfers);
 }
 
 // Courtesy of zpalmtree from turtlecoin-wallet-backend-js:
-export function estimateTransactionSize(
+function EstimateTransactionSize(
     mixin: number,
     numInputs: number,
     numOutputs: number): number {

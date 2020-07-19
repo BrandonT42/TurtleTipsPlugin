@@ -12,10 +12,10 @@ export async function CheckForWallet():Promise<boolean> {
 }
 
 // Gets loaded wallet information
-export async function GetWalletInfo():Promise<WalletInfo> {
+export async function GetKeys():Promise<WalletInfo> {
     return await new Promise(Resolve => {
         chrome.runtime.sendMessage({
-            Request: Request.GetWalletInfo
+            Request: Request.GetKeys
         }, Response => {
             Resolve(Response);
         });
@@ -53,6 +53,17 @@ export async function Restore(Seed:string, Password:string):Promise<boolean> {
             Request: Request.NewKeys,
             Seed: Seed,
             Password: Password
+        }, Response => {
+            Resolve(Response);
+        });
+    });
+}
+
+// Gets current wallet balance
+export async function GetBalance():Promise<any> {
+    return await new Promise(Resolve => {
+        chrome.runtime.sendMessage({
+            Request: Request.GetBalance
         }, Response => {
             Resolve(Response);
         });

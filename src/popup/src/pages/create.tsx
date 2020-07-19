@@ -30,7 +30,7 @@ class Initialize extends React.Component<RouteComponentProps> {
         let Seed = "881579e7c864c86e7bb4de577a92f68ecef4815463a1a2997fe29d992a29ee032715430";
         let Password = "12345";
         Wallet.Restore(Seed, Password).then(Success => {
-            Wallet.GetWalletInfo().then(WalletInfo => {
+            Wallet.GetKeys().then(WalletKeys => {
                 this.setState({Opacity: 0});
                 App.Window.Resize(300, 208);
                 Router.Route("/home");

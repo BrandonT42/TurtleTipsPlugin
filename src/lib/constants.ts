@@ -27,14 +27,14 @@ export const COINGECKO_CURRENCIES = [
     "VND", "XAG", "XAU", "XDR", "XLM", "XRP", "ZAR"
 ];
 
-// The amount of time to wait between checking for cancellation in an async function (in ms)
-export const CANCELLATION_INTERVAL = 100;
-
 // How often to update network height (in ms)
 export const NETWORK_HEIGHT_INTERVAL = 10000;
 
 // How often to update backend height (in ms)
 export const BACKEND_HEIGHT_INTERVAL = 10000;
+
+// How often to update price data (in ms)
+export const COINGECKO_PRICE_INTERVAL = 10000;
 
 // Fee-per-byte (in atomic units)
 export const FEE_PER_BYTE = 500;

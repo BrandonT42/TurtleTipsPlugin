@@ -2,6 +2,8 @@ import * as Network from "./network";
 import * as Wallet from "./wallet";
 import * as Transactions from "./transactions";
 import * as Database from "./database";
+import * as CoinGecko from "./coingecko";
+import * as Options from "./options";
 import { Transaction } from "turtlecoin-utils";
 import { Request } from "./types";
 
@@ -30,13 +32,24 @@ function OnMessage(Message, Sender, SendResponse) {
     switch(Message["Request"] as Request) {
         case Request.CheckForWallet:
             Wallet.CheckForWallet().then(WalletExists => {
-                console.log(`Wallet ${WalletExists ? "does" : "does not"} exist`);
                 SendResponse(WalletExists);
             });
             return true;
 
-        case Request.GetWalletInfo:
-            SendResponse(Wallet.Info);
+        case Request.GetKeys:
+            SendResponse(Wallet.Info.Keys);
+            return true;
+
+        case Request.GetBalance:
+            CoinGecko.GetPrice().then(Value => {
+                Options.GetCurrency().then(Currency => {
+                    SendResponse({
+                        Balance: Wallet.Info.Balance,
+                        Value: Value,
+                        Currency: Currency
+                    });
+                });
+            });
             return true;
 
         case Request.NewKeys:

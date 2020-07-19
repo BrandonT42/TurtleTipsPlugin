@@ -123,8 +123,11 @@ export enum Request {
     // Logs out of a wallet
     Logout,
 
-    // Gets wallet info
-    GetWalletInfo,
+    // Gets wallet keys
+    GetKeys,
+
+    // Gets wallet balance
+    GetBalance,
 
     // Requests a domain's registered key
     RequestDomainKey,

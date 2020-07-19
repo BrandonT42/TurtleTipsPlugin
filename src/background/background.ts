@@ -1,12 +1,10 @@
 import * as TurtleCoin from "../lib/turtlecoin";
 import * as Database from "../lib/database";
 import * as Events from "../lib/events";
-import * as Wallet from "../lib/wallet";
 import * as Async from "../lib/async";
 import * as Network from "../lib/network";
 import * as Backend from "../lib/backend";
 import * as Sync from "../lib/sync";
-import * as Options from "../lib/options";
 import * as CoinGecko from "../lib/coingecko";
 
 // Cancellation token that can cancel all async operations
@@ -26,13 +24,13 @@ async function Start() {
     // Initialize backend connection
     await Backend.Init(CancellationToken);
 
+    // Initialize coingecko monitor
+    await CoinGecko.Init(CancellationToken);
+
     // Assign chrome events
     await Events.Assign();
 
-    // TODO - remove this debug code
-    // Log back in successfully
-    await Wallet.Login("12345");
-    // Start sync
+    // Start sync manager
     await Sync.Start(CancellationToken);
 }
 Start();

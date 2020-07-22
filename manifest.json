@@ -2,9 +2,7 @@
     "manifest_version": 2,
     "name": "TurtleTips",
     "icons": {
-        "16": "assets/icon_s.png",
-        "48": "assets/icon_m.png",
-        "128": "assets/icon_l.png"
+        "128": "assets/icon_green.png"
     },
     "version": "0.0.1",
     "permissions": [

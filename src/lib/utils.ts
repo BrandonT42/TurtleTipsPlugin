@@ -45,3 +45,11 @@ export function GetReadableAmount(AtomicUnits:number) {
 export function GetAtomicUnits(Amount:number) {
     return Amount * Math.pow(10, Config.DecimalPlaces);
 }
+
+// Shuffles an array's values
+export function Shuffle(Array) {
+    for (let i = Array.length - 1; i > 0; i--) {
+        const Position = Math.floor(Math.random() * (i + 1));
+        [Array[i], Array[Position]] = [Array[Position], Array[i]];
+    }
+}

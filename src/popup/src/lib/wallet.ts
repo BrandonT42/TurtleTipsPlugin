@@ -50,7 +50,7 @@ export async function New(Password:string):Promise<boolean> {
 export async function Restore(Seed:string, Password:string):Promise<boolean> {
     return await new Promise(Resolve => {
         chrome.runtime.sendMessage({
-            Request: Request.NewKeys,
+            Request: Request.RestoreKeys,
             Seed: Seed,
             Password: Password
         }, Response => {
@@ -60,10 +60,10 @@ export async function Restore(Seed:string, Password:string):Promise<boolean> {
 }
 
 // Gets current wallet balance
-export async function GetBalance():Promise<any> {
+export async function GetWalletInfo():Promise<any> {
     return await new Promise(Resolve => {
         chrome.runtime.sendMessage({
-            Request: Request.GetBalance
+            Request: Request.GetWalletInfo
         }, Response => {
             Resolve(Response);
         });

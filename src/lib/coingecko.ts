@@ -32,12 +32,3 @@ export async function Init(CancellationToken:Async.CancellationToken) {
         await Async.Sleep(Constants.COINGECKO_PRICE_INTERVAL);
     }, CancellationToken);
 }
-
-// Attempts to register a spend key with the backend
-export async function GetPrice() {
-    // Get converted balance
-    let Balance = Utils.GetReadableAmount(Wallet.Info.Balance);
-
-    // Return price data
-    return Math.floor(ConversionRate * Balance * 100) / 100;
-}

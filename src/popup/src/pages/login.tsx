@@ -37,7 +37,7 @@ class LoginPage extends React.Component<RouteComponentProps> {
             // Login successful
             if (Success) {
                 this.setState({Opacity: 0});
-                App.Window.Resize(300, 208);
+                App.Current.Resize(300, 208);
                 Router.Route("/home");
             }
 
@@ -54,13 +54,13 @@ class LoginPage extends React.Component<RouteComponentProps> {
         return (
             <div className="Fit Panel Gradient" style={{opacity: this.state.Opacity}}>
                 <div className="Logo"/>
-                <h1 className="FadeIn Delay1000">Welcome back.</h1>
-                <p className="FadeIn Delay2000">Please enter your password to continue.</p>
+                <h1 className="FadeIn Delay100">Welcome back.</h1>
+                <p className="FadeIn Delay200">Please enter your password to continue.</p>
                 <form onSubmit={this.OnLoginClick}>
-                    <input className="FadeIn Delay3000" name="password" type="password"
+                    <input className="FadeIn Delay300" name="password" type="password"
                         value={this.state.Password} onChange={this.OnPasswordChange} autoFocus/>
                     <br/>
-                    <button className="FadeIn Delay3500">Login</button>
+                    <button className="FadeIn Delay350">Login</button>
                 </form>
             </div>
         );

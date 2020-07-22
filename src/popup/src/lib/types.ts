@@ -18,8 +18,8 @@ export enum Request {
     // Gets wallet keys
     GetKeys,
 
-    // Gets wallet balance
-    GetBalance,
+    // Gets wallet information, including balance and sync state
+    GetWalletInfo,
 
     // Requests a domain's registered key
     RequestDomainKey,

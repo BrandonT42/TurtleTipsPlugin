@@ -10,5 +10,6 @@ export function SetRouter(History:History) {
 
 // Replaces current page stack starting at the given page
 export function Route(Destination:string) {
+    console.log("Routing to " + Destination);
     Router.replace(Destination);
 }

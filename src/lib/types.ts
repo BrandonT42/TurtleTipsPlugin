@@ -97,6 +97,12 @@ export type SyncData = {
     Outputs:Output[];
 }
 
+// Tip information about a domain
+export type Host = {
+    Host:string;
+    PublicKey:string;
+}
+
 // An error-able, variable return type interface
 export type Errorable<T> = {
     Success: false,
@@ -126,8 +132,8 @@ export enum Request {
     // Gets wallet keys
     GetKeys,
 
-    // Gets wallet balance
-    GetBalance,
+    // Gets wallet information, including balance and sync state
+    GetWalletInfo,
 
     // Requests a domain's registered key
     RequestDomainKey,

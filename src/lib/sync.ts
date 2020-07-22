@@ -4,6 +4,7 @@ import * as Backend from "./backend";
 import * as Constants from "./constants";
 import * as TurtleCoin from "./turtlecoin";
 import * as Database from "./database";
+import * as Transaction from "./transactions";
 import * as Network from "./network";
 
 // Last known sync height
@@ -11,6 +12,9 @@ export let Height = 0;
 
 // Whether or not the wallet is synced
 export let Synced = false;
+
+// Percentage synced
+export let Percentage = 0;
 
 // Loads last sync information and begins syncing
 export async function Start(CancellationToken:Async.CancellationToken) {
@@ -43,8 +47,19 @@ export async function Start(CancellationToken:Async.CancellationToken) {
 
         // Check if already synced and wait if so
         if (Height >= Backend.Height) {
+            // Wallet is synced
             Synced = true;
-            console.log("Sync height >= backend height, waiting...");
+
+            // Attempt auto optimization
+            let Fusion = await Transaction.CreateFusion();
+            if (Fusion.Success) {
+                console.log("Attempting optimization...");
+                let Success = Network.SendTransaction(Fusion.Value);
+                if (Success) console.log("Fusion transaction sent");
+                else console.log("Failed to send fusion transaction");
+            }
+
+            // Sleep then start over
             await Async.Sleep(5000, CancellationToken);
             return;
         }
@@ -52,7 +67,7 @@ export async function Start(CancellationToken:Async.CancellationToken) {
 
         // Calculate sync chunk size
         let ChunkSize = Backend.Height - Height;
-        ChunkSize = ChunkSize <= Constants.MAX_SYNC_CHUNK_SIZE ? ChunkSize : Constants.MAX_SYNC_CHUNK_SIZE;
+        ChunkSize = ChunkSize <= Constants.MAXIMUM_SYNC_CHUNK_SIZE ? ChunkSize : Constants.MAXIMUM_SYNC_CHUNK_SIZE;
 
         // Get sync data for this chunk
         let SyncData = await Backend.GetSyncData(Height + 1, ChunkSize);
@@ -98,7 +113,8 @@ export async function Start(CancellationToken:Async.CancellationToken) {
 
         // Set new sync height
         Height += ChunkSize;
-        console.log("Synced to height " + Height + " / " + Backend.Height);
+        Percentage = Math.floor(Height / Backend.Height * 10000) / 100;
+        console.log(`Synced to height ${Height} / ${Backend.Height} (${Percentage}%)`);
 
         // Adjust wallet balance
         await Wallet.AddBalance(BalanceChange);
@@ -109,4 +125,5 @@ export async function Start(CancellationToken:Async.CancellationToken) {
 export async function ResetHeight(NewHeight?:number) {
     Height = NewHeight ?? 0;
     Synced = false;
+    console.log("Sync reset to height " + Height);
 }

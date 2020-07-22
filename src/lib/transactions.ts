@@ -3,12 +3,140 @@ import * as Network from "./network";
 import * as TurtleCoin from "./turtlecoin";
 import * as Database from "./database";
 import * as Wallet from "./wallet";
+import * as Utils from "./utils";
 import * as Constants from "./constants";
 import { Interfaces, Address as Addresses, Transaction } from "turtlecoin-utils";
-import { Transfer, Errorable } from "./types";
+import { Transfer, Errorable, Input } from "./types";
 
-// Creates a new transaction that can be broadcast to the network
-async function Create(Destinations:Transfer[], PaymentId?:string):Promise<Errorable<Transaction>> {
+// Creates a new advanced transaction
+async function CreateAdvanced(Inputs:Interfaces.Output[], Outputs:Interfaces.GeneratedOutput[],
+    Fee:number, PaymentId?:string):Promise<Errorable<Transaction>> {
+    // Request random outputs from the network
+    let RandomOutputs:Interfaces.RandomOutput[][] = [];
+    RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
+
+    // Attempt to create transaction
+    try {
+        let Transaction = await TurtleCoin.Utils.createTransaction(Outputs, Inputs,
+            RandomOutputs, Config.Mixin, Fee, PaymentId);
+        return { Success: true, Value: Transaction };
+    }
+    catch (Error) {
+        return { Success: false, Error: Error };
+    }
+}
+
+// Gets inputs to create a fusion transaction with
+// Ported from zpalmtree's code in turtlecoin-wallet-backend-js
+async function GetFusionInputs():Promise<Input[]> {
+    return new Promise(async Resolve => {
+        // Get spendable inputs and shuffle them
+        let Inputs = await Database.GetUnspentInputs();
+        Utils.Shuffle(Inputs);
+
+        // Split inputs based on power of ten
+        let SortedInputs:Map<number, Input[]>  = new Map();
+        Inputs.forEach(Input => {
+            let Pow = Math.ceil(Math.log10(Input.Amount + 1));
+            let Temp = SortedInputs.get(Pow) || [];
+            Temp.push(Input);
+            SortedInputs.set(Pow, Temp);
+        });
+        
+        // Determine if any set of inputs meets the minimum fusion requirement
+        let FullInputs:Input[][] = [];
+        SortedInputs.forEach(Bucket => {
+            if (Bucket.length >= Constants.MINIMUM_FUSION_INPUT_COUNT) {
+                FullInputs.push(Bucket);
+            }
+        });
+        Utils.Shuffle(FullInputs);
+        
+        // If there are any sets of inputs meeting the minimum fusion requirement, use them
+        let EligibleInputs:Input[][] = [];
+        if (FullInputs.length > 0) EligibleInputs = [FullInputs[0]];
+        else {
+            EligibleInputs.forEach(Inputs => {
+                EligibleInputs.push(Inputs);
+            });
+        }
+
+        // Decide on final inputs
+        let FusionInputs:Input[] = [];
+        EligibleInputs.forEach(Bucket => {
+            Bucket.forEach(Input => {
+                FusionInputs.push(Input);
+                if (FusionInputs.length >= Constants.MAXIMUM_FUSION_INPUT_COUNT) {
+                    Resolve(FusionInputs);
+                }
+            });
+        });
+        Resolve(FusionInputs);
+    });
+}
+
+// Creates a new fusion transaction that can be broadcast to the network
+// Ported from zpalmtree's code in turtlecoin-wallet-backend-js
+export async function CreateFusion():Promise<Errorable<Transaction>> {
+    // Get fusion inputs
+    let Inputs = await GetFusionInputs();
+
+    // Loop until fusion transaction is made or fails to get created
+    while (true) {
+        // Verify there are enough inputs to create a fusion transaction
+        if (Inputs.length < Constants.MINIMUM_FUSION_INPUT_COUNT) {
+            return { Success: false, Error: Error("Wallet fully optimized") };
+        }
+
+        // Sum input amounts and get transaction outputs
+        let Amount = Inputs.reduce((A, B) => A + B.Amount, 0);
+        let Outputs = TurtleCoin.Utils.generateTransactionOutputs(Wallet.Info.Address, Amount);
+
+        // Check if input to output ratio has been met
+        if (Outputs.length == 0 || Inputs.length / Outputs.length < Constants.FUSION_INPUT_RATIO) {
+            // Pop last input and try again
+            Inputs.pop();
+            continue;
+        }
+
+        // Create transaction inputs array
+        let FusionInputs = [];
+        Inputs.forEach(Input => {
+            FusionInputs.push({
+                key: Input.PublicEphemeral,
+                keyImage: Input.KeyImage,
+                input: {
+                    privateEphemeral: Input.PrivateEphemeral,
+                    publicEphemeral: undefined,
+                    transactionKeys: undefined
+                },
+                index: Input.TransactionIndex,
+                globalIndex: Input.GlobalIndex,
+                amount: Input.Amount
+            })
+        });
+
+        // Attempt to create a fusion transaction
+        let Transaction = await CreateAdvanced(FusionInputs, Outputs, 0);
+        if (!Transaction.Success) return Transaction;
+
+        // Estimate transaction size to see if it exceeds maximum fusion size
+        const InputsSize = Constants.INPUT_SIZE * FusionInputs.length;
+        const OutputsSize = Constants.OUTPUT_SIZE * Outputs.length;
+        let TransactionSize = Constants.TRANSACTION_HEADER_SIZE + InputsSize + OutputsSize;
+        if (TransactionSize > Constants.MAXIMUM_FUSION_SIZE) {
+            // Pop last input and try again
+            Inputs.pop();
+            continue;
+        }
+
+        // Fusion transaction was successful
+        return Transaction;
+    }
+}
+
+// Creates a new simple transaction that can be broadcast to the network
+async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<Errorable<Transaction>> {
     // Validate payment id
     if (PaymentId && (PaymentId.length != 64 || !PaymentId.match("-?[0-9a-fA-F]+"))) {
         return { Success: false, Error: Error("Invalid payment id") };
@@ -59,9 +187,11 @@ async function Create(Destinations:Transfer[], PaymentId?:string):Promise<Errora
             // Set remaining change amount
             let Change = InputTotal - TransactionAmount;
 
-            // Estimate transaction fee and subtract from change
-            let TransactionSize = EstimateTransactionSize(Config.Mixin, Inputs.length, Outputs.length);
-            let Fee = Math.ceil(TransactionSize / 256) * Constants.FEE_PER_BYTE;
+            // Estimate transaction fee based on transaction byte size and subtract from change
+            const InputsSize = Constants.INPUT_SIZE * Inputs.length;
+            const OutputsSize = Constants.OUTPUT_SIZE * Outputs.length;
+            let TransactionSize = Constants.TRANSACTION_HEADER_SIZE + InputsSize + OutputsSize;
+            let Fee = TurtleCoin.Utils.calculateMinimumTransactionFee(TransactionSize);
             Change -= Fee;
             if (Change < 0) continue;
 
@@ -75,19 +205,8 @@ async function Create(Destinations:Transfer[], PaymentId?:string):Promise<Errora
             // Check if out input amount covers the required total
             let EstimatedAmount: number = TransactionAmount + Fee;
             if (InputTotal >= EstimatedAmount) {
-                // Request random outputs from the network
-                let RandomOutputs:Interfaces.RandomOutput[][] = [];
-                RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
-
-                // Attempt to create transaction
-                try {
-                    let Transaction = await TurtleCoin.Utils.createTransaction(Outputs, Inputs,
-                        RandomOutputs, Config.Mixin, Fee, PaymentId);
-                    return { Success: true, Value: Transaction };
-                }
-                catch (Error) {
-                    return { Success: false, Error: Error };
-                }
+                // Create transaction
+                return await CreateAdvanced(Inputs, Outputs, Fee, PaymentId);
             }
         }
     }
@@ -122,7 +241,7 @@ export async function Tip(PublicSpendKey:string, Amount:number):Promise<Errorabl
     }
 
     // Attempt to create transaction
-    return await Create(Transfers);
+    return await CreateSimple(Transfers);
 }
 
 // Creates a new withdrawal transaction
@@ -163,55 +282,5 @@ export async function Withdraw(Address:string, Amount:number):Promise<Errorable<
     });
 
     // Attempt to create transaction
-    return await Create(Transfers);
-}
-
-// Courtesy of zpalmtree from turtlecoin-wallet-backend-js:
-function EstimateTransactionSize(
-    mixin: number,
-    numInputs: number,
-    numOutputs: number): number {
-
-    const KEY_IMAGE_SIZE: number = 32;
-    const OUTPUT_KEY_SIZE: number = 32;
-    const AMOUNT_SIZE = 8 + 2; // varint
-    const GLOBAL_INDEXES_VECTOR_SIZE_SIZE: number = 1 // varint
-    const GLOBAL_INDEXES_INITIAL_VALUE_SIZE: number = 4; // varint
-    const SIGNATURE_SIZE: number = 64;
-    const EXTRA_TAG_SIZE: number = 1;
-    const INPUT_TAG_SIZE: number = 1;
-    const OUTPUT_TAG_SIZE: number = 1;
-    const PUBLIC_KEY_SIZE: number = 32;
-    const TRANSACTION_VERSION_SIZE: number = 1;
-    const TRANSACTION_UNLOCK_TIME_SIZE: number = 8 + 2; // varint
-    const EXTRA_DATA_SIZE: number = 0;
-    const PAYMENT_ID_SIZE: number = 0;
-
-    /* The size of the transaction header */
-    const headerSize: number = TRANSACTION_VERSION_SIZE
-                             + TRANSACTION_UNLOCK_TIME_SIZE
-                             + EXTRA_TAG_SIZE
-                             + EXTRA_DATA_SIZE
-                             + PUBLIC_KEY_SIZE
-                             + PAYMENT_ID_SIZE;
-
-    /* The size of each transaction input */
-    const inputSize: number = INPUT_TAG_SIZE
-                            + AMOUNT_SIZE
-                            + KEY_IMAGE_SIZE
-                            + SIGNATURE_SIZE
-                            + GLOBAL_INDEXES_VECTOR_SIZE_SIZE
-                            + GLOBAL_INDEXES_INITIAL_VALUE_SIZE
-                            + mixin * SIGNATURE_SIZE;
-
-    const inputsSize: number = inputSize * numInputs;
-
-    /* The size of each transaction output. */
-    const outputSize: number = OUTPUT_TAG_SIZE
-                             + OUTPUT_KEY_SIZE
-                             + AMOUNT_SIZE;
-
-    const outputsSize: number = outputSize * numOutputs;
-
-    return headerSize + inputsSize + outputsSize;
+    return await CreateSimple(Transfers);
 }

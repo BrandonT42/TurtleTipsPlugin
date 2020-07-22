@@ -40,22 +40,16 @@ function OnMessage(Message, Sender, SendResponse) {
             SendResponse(Wallet.Info.Keys);
             return true;
 
-        case Request.GetBalance:
-            CoinGecko.GetPrice().then(Value => {
-                Options.GetCurrency().then(Currency => {
-                    SendResponse({
-                        Balance: Wallet.Info.Balance,
-                        Value: Value,
-                        Currency: Currency
-                    });
-                });
+        case Request.GetWalletInfo:
+            Wallet.GetWalletInfo().then(Balance => {
+                SendResponse(Balance);
             });
             return true;
 
         case Request.NewKeys:
             let NewWalletPassword = Message["Password"] as string;
             Wallet.New(NewWalletPassword).then(() => {
-                SendResponse(Wallet.Info);
+                SendResponse(true);
             });
             return true;
 
@@ -63,10 +57,7 @@ function OnMessage(Message, Sender, SendResponse) {
             let WalletSeed = Message["Seed"] as string;
             let RestoreWalletPassword = Message["Password"] as string;
             Wallet.Restore(WalletSeed, RestoreWalletPassword).then(Success => {
-                SendResponse({
-                    Success: Success,
-                    Wallet: Wallet.Info
-                });
+                SendResponse(Success);
             });
             return true;
 
@@ -111,7 +102,11 @@ function OnMessage(Message, Sender, SendResponse) {
             return true;
 
         case Request.Wipe:
-            Wallet.Wipe().then(() => Database.Clear());
+            Wallet.Wipe().then(() => {
+                Database.Clear().then(() =>{
+                    SendResponse();
+                });
+            });
             return true;
 
         default:

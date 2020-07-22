@@ -12,8 +12,11 @@ class BackupPage extends React.Component<RouteComponentProps> {
     // Constructor
     constructor(props: RouteComponentProps) {
         super(props);
+    }
 
+    componentDidMount() {    
         // TODO - remove debug code
+        this.setState({Opacity: 0});
         Router.Route("/home");
     }
 

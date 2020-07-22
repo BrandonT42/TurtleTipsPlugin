@@ -60,7 +60,7 @@ export async function Restore(Seed:string, Password:string):Promise<boolean> {
 }
 
 // Gets current wallet balance
-export async function GetWalletInfo():Promise<any> {
+export async function GetWalletInfo():Promise<WalletInfo> {
     return await new Promise(Resolve => {
         chrome.runtime.sendMessage({
             Request: Request.GetWalletInfo

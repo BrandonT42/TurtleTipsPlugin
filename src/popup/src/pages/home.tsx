@@ -1,9 +1,10 @@
 import React from "react";
-import { Request } from "../lib/types";
 import { withRouter, RouteComponentProps } from "react-router-dom";
+import * as Config from "../config.json";
 import * as Async from "../lib/async";
 import * as Wallet from "../lib/wallet";
 import * as App from "../App";
+import * as Router from "../lib/routing";
 
 // Main Page
 class HomePage extends React.Component<RouteComponentProps> {
@@ -22,8 +23,8 @@ class HomePage extends React.Component<RouteComponentProps> {
     constructor(props: RouteComponentProps) {
         super(props);
 
-        // Resize window
-        App.Current.Resize(300, 208);
+        // Resize app window
+        App.Current.Resize(300, 220);
 
         // Bind event listeners
         this.OnOptionsClick = this.OnOptionsClick.bind(this);
@@ -41,7 +42,7 @@ class HomePage extends React.Component<RouteComponentProps> {
                 Locked: WalletInfo.Locked,
                 Value: WalletInfo.Value,
                 Currency: WalletInfo.Currency,
-                SyncPercentage: WalletInfo.SyncPercentage + "%"
+                SyncPercentage: WalletInfo.SyncPercentage
             });
             
             // Sleep
@@ -51,22 +52,25 @@ class HomePage extends React.Component<RouteComponentProps> {
 
     // Options icon clicked
     OnOptionsClick() {
-        console.log("Options clicked");
+        this.setState({Opacity: 0});
+        Router.Route("/options");
     }
 
     // Withdraw button clicked
     OnWithdrawClick() {
-        console.log("Withdraw clicked");
+        this.setState({Opacity: 0});
+        Router.Route("/withdraw");
     }
 
     // Deposit button clicked
     OnDepositClick() {
-        console.log("Deposit clicked");
+        this.setState({Opacity: 0});
+        Router.Route("/deposit");
+    }
 
-        // TODO - remove this debug code
-        chrome.runtime.sendMessage({
-            Request: Request.Wipe
-        }, Response => console.log("Wiped storage"));
+    // Triggers when the component is about to unmount
+    componentWillUnmount() {
+        this.state.CancellationToken.Cancel(true);
     }
 
     // Render
@@ -77,15 +81,14 @@ class HomePage extends React.Component<RouteComponentProps> {
                 <p className="SyncStatus">
                     {this.state.SyncPercentage}
                 </p>
-                <div className="Panel Gradient Body">
+                    <br/>
                     <h2 className="FadeIn Delay100">Balance:</h2>
-                    <h1 className="FadeIn Delay100">{this.state.Balance} TRTL</h1>
-                    <h3 className="FadeIn Delay100">({this.state.Value} {this.state.Currency})</h3>
+                    <h1 className="FadeIn Delay100">{this.state.Balance} {Config.Ticker}</h1>
+                    <h3 className="FadeInPartial Delay100">({this.state.Value} {this.state.Currency})</h3>
                     <h2 className="FadeIn Delay200">Locked Balance:</h2>
-                    <h3 className="FadeIn Delay 300">{this.state.Locked} TRTL</h3>
+                    <h3 className="FadeInPartial Delay 300">{this.state.Locked} {Config.Ticker}</h3>
                     <button className="FadeIn Delay400" onClick={this.OnDepositClick}>Deposit</button>
                     <button className="FadeIn Delay450" onClick={this.OnWithdrawClick}>Withdraw</button>
-                </div>
             </div>
         );
     }

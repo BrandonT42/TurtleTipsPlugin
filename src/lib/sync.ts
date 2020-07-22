@@ -20,15 +20,16 @@ export let Percentage = 0;
 export async function Start(CancellationToken:Async.CancellationToken) {
     // Start wallet sync loop
     Async.Loop(async () => {
-        // Check that the backend is reachable
-        if (!Backend.Connected) {
-            console.log("Backend unreachable, waiting...");
+        // Check that wallet exists and is already registered with the backend
+        if (!Wallet.Info) {
+            console.log("No wallet loaded, waiting...");
             await Async.Sleep(5000, CancellationToken);
             return;
         }
-
-        // Check that wallet exists and is already registered with the backend
-        if (!Wallet.Info) {
+        
+        // Check that the backend is reachable
+        if (!Backend.Connected) {
+            console.log("Backend unreachable, waiting...");
             await Async.Sleep(5000, CancellationToken);
             return;
         }

@@ -46,22 +46,34 @@ export type KeyPair = {
     publicKey:string;
 }
 
-// Wallet information
+// Frontend wallet information
 export type WalletInfo = {
-    // Spend key pair
-    Keys:KeyPair;
+    // Available balance
+    Balance:string;
 
-    // TurtleCoin address
-    Address:string;
+    // Locked balance
+    Locked:string;
 
-    // Current balance
-    Balance:number;
+    // Value in preferred currency
+    Value:string;
+
+    // Preferred currency
+    Currency:string;
+
+    // Whether or not the wallet is synced
+    Synced:boolean;
 
     // Synced height
     Height:number;
 
-    // Whether or not the wallet has been registered with the backend
-    Registered:boolean;
+    // Known network height
+    NetworkHeight:number;
+
+    // Percentage synced
+    SyncPercentage:string;
+
+    // Wallet restoration seed
+    Seed:string;
 }
 
 // Wallet balance data

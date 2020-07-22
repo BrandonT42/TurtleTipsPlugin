@@ -7,10 +7,10 @@ import * as CoinGecko from "./coingecko";
 import * as Options from "./options";
 import * as Backend from "./backend";
 import { Address as Addresses, KeyPair } from "turtlecoin-utils";
-import { WalletInfo } from "./types";
+import { Wallet, WalletInfo } from "./types";
 
 // Currently loaded wallet
-export let Info:WalletInfo;
+export let Info:Wallet;
 
 // Checks for whether or not a wallet exists
 export async function CheckForWallet():Promise<boolean> {
@@ -184,7 +184,7 @@ export async function AddBalance(Amount:number) {
 }
 
 // Gets wallet information, including balance and sync state
-export async function GetWalletInfo() {
+export async function GetWalletInfo():Promise<WalletInfo> {
     // Get currency preference
     let Currency = await Options.GetCurrency();
 
@@ -194,7 +194,12 @@ export async function GetWalletInfo() {
             Balance: "0.00",
             Locked: "0.00",
             Value: "0.00",
-            Currency: Currency
+            Currency: Currency,
+            Synced: false,
+            Height: 0,
+            NetworkHeight: Network.Height,
+            SyncPercentage: "0.00%",
+            Seed: undefined
         };
     }
 
@@ -216,7 +221,7 @@ export async function GetWalletInfo() {
     let Synced = Sync.Synced;
     let Height = Sync.Height;
     let NetworkHeight = Backend.Height;
-    let SyncPercentage = Sync.Percentage;
+    let SyncPercentage = Sync.Percentage + "%";
 
     // Return balance information
     return {
@@ -227,7 +232,8 @@ export async function GetWalletInfo() {
         Synced: Synced,
         Height: Height,
         NetworkHeight: NetworkHeight,
-        SyncPercentage: SyncPercentage
+        SyncPercentage: SyncPercentage,
+        Seed: Info.Keys.privateKey + Info.Height
     };
 }
 

@@ -13,6 +13,9 @@ import RestorePage from "./pages/restore";
 import BackupPage from "./pages/backup";
 import LoginPage from "./pages/login";
 import HomePage from "./pages/home";
+import OptionsPage from "./pages/options";
+import WithdrawPage from "./pages/withdraw";
+import DepositPage from "./pages/deposit";
 
 // Holds a reference to the current running app window
 export let Current:App;
@@ -23,7 +26,7 @@ class App extends Component {
     state = {
         StartingPage: CreatePage,
         Width: 300,
-        Height: 360,
+        Height: 1,
         ErrorMessage: React.createRef<HTMLParagraphElement>(),
         LastError: ""
     }
@@ -102,6 +105,9 @@ class App extends Component {
                                 <Route path="/backup" component={BackupPage}/>
                                 <Route path="/login" component={LoginPage}/>
                                 <Route path="/home" component={HomePage}/>
+                                <Route path="/options" component={OptionsPage}/>
+                                <Route path="/withdraw" component={WithdrawPage}/>
+                                <Route path="/deposit" component={DepositPage}/>
                             </Switch>
                         </CSSTransition>
                     </TransitionGroup>

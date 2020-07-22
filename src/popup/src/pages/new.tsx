@@ -15,7 +15,7 @@ class NewPage extends React.Component<RouteComponentProps> {
     constructor(props: RouteComponentProps) {
         super(props);
 
-        // Resize window
+        // Resize app window
         App.Current.Resize(300, 366);
 
         // Bind event handlers
@@ -25,6 +25,7 @@ class NewPage extends React.Component<RouteComponentProps> {
 
     // Back arrow clicked
     OnBackArrowClick(Event:React.MouseEvent<HTMLDivElement, MouseEvent>) {
+        this.setState({Opacity: 0});
         Router.Route("/create");
     }
 
@@ -72,10 +73,10 @@ class NewPage extends React.Component<RouteComponentProps> {
                 <div className="Logo"/>
                 <h1 className="FadeIn Delay100">Let's get started.</h1>
                 <form onSubmit={this.OnCreateWalletClick}>
-                    <p className="FadeIn Delay200">Enter a password</p>
+                    <p className="FadeInPartial Delay200">Enter a password</p>
                     <input className="FadeIn Delay250" name="password" type="password" autoFocus/>
                     <br/>
-                    <p className="FadeIn Delay300">Confirm your password</p>
+                    <p className="FadeInPartial Delay300">Confirm your password</p>
                     <input className="FadeIn Delay350" name="confirmpassword" type="password"/>
                     <br/>
                     <button className="FadeIn Delay400">Create Wallet</button>

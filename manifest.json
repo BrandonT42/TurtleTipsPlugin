@@ -1,6 +1,7 @@
 {
     "manifest_version": 2,
     "name": "TurtleTips",
+    "description": "TurtleTips frontend extension",
     "icons": {
         "128": "assets/icon_green.png"
     },

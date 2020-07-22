@@ -38,12 +38,6 @@ export async function Init(CancellationToken:Async.CancellationToken) {
 
     // Begin height update loop
     Async.Loop(async () => {
-        // If not connected, wait
-        if (!Connected) {
-            await Async.Sleep(Constants.BACKEND_HOSTS_INTERVAL);
-            return;
-        }
-
         // If wallet isn't loaded, wait
         if (!Wallet.Info) {
             await Async.Sleep(1000);
@@ -54,7 +48,9 @@ export async function Init(CancellationToken:Async.CancellationToken) {
         let Response = await Backend.Get(Constants.BACKEND_API.HEIGHT);
         if (Response && Response.height) {
             Height = Response.height;
+            Connected = true;
         }
+        else Connected = false;
         await Async.Sleep(Constants.BACKEND_HEIGHT_INTERVAL);
     }, CancellationToken);
 }

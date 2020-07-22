@@ -25,8 +25,8 @@ export type Input = {
     UnlockTime:number;
 }
 
-// Wallet information
-export type WalletInfo = {
+// Background wallet information
+export type Wallet = {
     // Spend key pair
     Keys:KeyPair;
 
@@ -41,6 +41,36 @@ export type WalletInfo = {
 
     // Whether or not the wallet has been registered with the backend
     Registered:boolean;
+}
+
+// Frontend wallet information
+export type WalletInfo = {
+    // Available balance
+    Balance:string;
+
+    // Locked balance
+    Locked:string;
+
+    // Value in preferred currency
+    Value:string;
+
+    // Preferred currency
+    Currency:string;
+
+    // Whether or not the wallet is synced
+    Synced:boolean;
+
+    // Synced height
+    Height:number;
+
+    // Known network height
+    NetworkHeight:number;
+
+    // Percentage synced
+    SyncPercentage:string;
+
+    // Wallet restoration seed
+    Seed:string;
 }
 
 // Transaction destinations

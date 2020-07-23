@@ -11,4 +11,4 @@ With TurtleTips, the more computationally-expensive side of syncing your wallet 
 4. Repeat step 3 within the `src/popup/src/` folder, with the second `example.config.json` file.
 5. Ensure TurtleTips backend is running.
 6. Run `npm run watch` in the root directory to begin debugging.
-7. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the newly created `dist` folder.
+7. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the newly created `dist` folder. You may need to enable `developer mode`.

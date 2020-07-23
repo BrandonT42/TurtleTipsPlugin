@@ -1,11 +1,12 @@
 import React from "react";
 import { withRouter, RouteComponentProps } from "react-router-dom";
+import * as Wallet from "../lib/wallet";
 import * as Router from "../lib/routing";
 import * as App from "../App";
 import * as Config from "../config.json";
 
 // Main Page
-class WithdrawPage extends React.Component<RouteComponentProps> {
+class SendPage extends React.Component<RouteComponentProps> {
     // Set default state
     state = {
         Opacity: 1,
@@ -33,8 +34,37 @@ class WithdrawPage extends React.Component<RouteComponentProps> {
 
     // Send transaction button was clicked
     OnSendButtonClick(Event:React.MouseEvent<HTMLFormElement, MouseEvent>) {
-        // TODO - finish this
-        App.Current.DisplayError("Coming soon");
+        // Show loading icon
+        App.Current.StartLoading();
+
+        // Get form elements
+        let Children = Event.currentTarget.children;
+        let Address = Children.namedItem("address") as HTMLInputElement;
+        let Amount = Children.namedItem("amount") as HTMLInputElement;
+        let PaymentId = Children.namedItem("paymentid") as HTMLInputElement;
+
+        // Attempt to create transaction
+        Wallet.Send(Address.value, +Amount.value, PaymentId.value).then(Response => {
+            // Check for an existing response
+            if (!Response) {
+                App.Current.DisplayError("Failed to create transaction");
+                return;
+            }
+
+            // Check if successful
+            if (!Response.Success) {
+                App.Current.DisplayError(Response.Error, { Duration:1200 });
+                return;
+            }
+
+            // Success
+            Wallet.SetTransaction(Response.Value);
+            this.setState({Opacity: 0});
+            Router.Route("/confirm");
+        });
+
+        // Finish loading and prevent form submit
+        App.Current.DoneLoading();
         Event.preventDefault();
     }
 
@@ -68,7 +98,7 @@ class WithdrawPage extends React.Component<RouteComponentProps> {
                     <input className="FadeIn Delay250" name="address" autoFocus/>
                     <br/>
                     <p className="FadeInPartial Delay300">How much would you like to send?</p>
-                    <input className="FadeIn Delay350" name="amount" type="number"
+                    <input className="FadeIn Delay350" name="amount" type="number" step="0.01"
                         onChange={this.OnAmountChange} value={this.state.Amount}/>
                     <br/>
                     <p className="FadeInPartial Delay400">Enter a payment ID (Optional)</p>
@@ -81,4 +111,4 @@ class WithdrawPage extends React.Component<RouteComponentProps> {
     }
 }
 
-export default withRouter(WithdrawPage);
+export default withRouter(SendPage);

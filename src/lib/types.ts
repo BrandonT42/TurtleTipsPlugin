@@ -1,4 +1,4 @@
-import { KeyPair } from "turtlecoin-utils"
+import { KeyPair, Transaction as GeneratedTransaction } from "turtlecoin-utils";
 
 // This contains input data which we will store locally
 export type Input = {
@@ -71,6 +71,9 @@ export type WalletInfo = {
 
     // Wallet restoration seed
     Seed:string;
+
+    // Wallet address
+    Address:string;
 }
 
 // Transaction destinations
@@ -80,6 +83,24 @@ export type Transfer = {
 
     // Amount of TurtleCoin to send
     Amount:number;
+}
+
+// Created transaction information
+export type Transaction = {
+    // Raw transaction blob
+    Raw:GeneratedTransaction;
+
+    // Transaction hash
+    Hash:string
+
+    // Total of destinations
+    Amount:number;
+
+    // Change to be returned
+    Change:number;
+
+    // Transaction fee
+    Fee:number;
 }
 
 // Output to be converted into a spendable input
@@ -136,7 +157,7 @@ export type Host = {
 // An error-able, variable return type interface
 export type Errorable<T> = {
     Success: false,
-    Error: Error
+    Error: string
 } | {
     Success: true,
     Value: T
@@ -171,10 +192,10 @@ export enum Request {
     // Requests a tip to the current domain
     RequestTip,
 
-    // Requests a withdrawal
-    RequestWithdrawal,
+    // Requests a transaction
+    RequestSend,
 
-    // Sends a tip or withdrawal transaction
+    // Sends a transaction
     SendTransaction,
 
     // Wipes all stored and cached data

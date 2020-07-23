@@ -40,17 +40,21 @@ class RestorePage extends React.Component<RouteComponentProps> {
         // Test password strength
         let Regex = new RegExp("^(?=.{8,})");
         if (!Regex.test(Password.value)) {
-            App.Current.DisplayError("Password must be 8 characters or longer.", Password);
+            App.Current.DisplayError("Password must be 8 characters or longer.", {
+                Parent: Password
+            });
         }
 
         // Verify passwords match
         else if (Password.value !== ConfirmPassword.value) {
-            App.Current.DisplayError("Passwords do not match.", ConfirmPassword);
+            App.Current.DisplayError("Passwords do not match.", {
+                Parent: ConfirmPassword
+            });
         }
 
         // Passwords check out
         else {
-            Wallet.Restore(Seed.value.toLowerCase(), Password.value).then(Success => {
+            Wallet.Restore(Seed.value, Password.value).then(Success => {
                 // If wallet was successfully created, move to backup screen
                 if (Success) {
                     this.setState({Opacity: 0});
@@ -59,7 +63,9 @@ class RestorePage extends React.Component<RouteComponentProps> {
 
                 // Otherwise an unknown error took place, likely a bad seed
                 else {
-                    App.Current.DisplayError("Invalid seed, please try again.", Seed);
+                    App.Current.DisplayError("Invalid seed, please try again.", {
+                        Parent: Seed
+                    });
                 }
             });
         }

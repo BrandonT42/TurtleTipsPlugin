@@ -1,4 +1,5 @@
-// Lists all accepted messages
+import { Transaction as GeneratedTransaction } from "turtlecoin-utils";// Lists all accepted messages
+
 export enum Request {
     // Checks whether or not a wallet exists
     CheckForWallet,
@@ -27,23 +28,14 @@ export enum Request {
     // Requests a tip to the current domain
     RequestTip,
 
-    // Requests a withdrawal
-    RequestWithdrawal,
+    // Requests a transaction
+    RequestSend,
 
-    // Sends a tip or withdrawal transaction
+    // Sends a transaction
     SendTransaction,
 
     // Wipes all stored and cached data
     Wipe
-}
-
-// ED25519 key pair
-export type KeyPair = {
-    // Private key
-    privateKey:string;
-
-    // Public key
-    publicKey:string;
 }
 
 // Frontend wallet information
@@ -74,16 +66,34 @@ export type WalletInfo = {
 
     // Wallet restoration seed
     Seed:string;
+
+    // Wallet address
+    Address:string;
 }
 
-// Wallet balance data
-export type WalletBalance = {
-    // Balance in atomic units
-    Balance:number;
+// An error-able, variable return type interface
+export type Errorable<T> = {
+    Success: false,
+    Error: string
+} | {
+    Success: true,
+    Value: T
+}
 
-    // Balance in preferred currency
-    Value:number;
+// Created transaction information
+export type TransactionInfo = {
+    // Raw transaction blob
+    Raw:GeneratedTransaction;
 
-    // Preferred currency
-    Currency:string;
+    // Transaction hash
+    Hash:string
+
+    // Total of destinations
+    Amount:number;
+
+    // Change to be returned
+    Change:number;
+
+    // Transaction fee
+    Fee:number;
 }

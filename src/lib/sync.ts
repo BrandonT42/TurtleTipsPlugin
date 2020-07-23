@@ -55,7 +55,7 @@ export async function Start(CancellationToken:Async.CancellationToken) {
             let Fusion = await Transaction.CreateFusion();
             if (Fusion.Success) {
                 console.log("Attempting optimization...");
-                let Success = Network.SendTransaction(Fusion.Value);
+                let Success = Network.SendTransaction(Fusion.Value.Raw);
                 if (Success) console.log("Fusion transaction sent");
                 else console.log("Failed to send fusion transaction");
             }

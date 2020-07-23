@@ -81,15 +81,16 @@ function OnMessage(Message, Sender, SendResponse) {
         case Request.RequestTip:
             let PublicSpendKey = Message["PublicSpendKey"] as string;
             let TipAmount = Message["Amount"] as number;
-            Transactions.Withdraw(PublicSpendKey, TipAmount).then(Transaction => {
+            Transactions.Send(PublicSpendKey, TipAmount).then(Transaction => {
                 SendResponse(Transaction);
             });
             return true;
 
-        case Request.RequestWithdrawal:
-            let Address = Message["Address"] as string;
-            let WithdrawalAmount = Message["Amount"] as number;
-            Transactions.Withdraw(Address, WithdrawalAmount).then(Transaction => {
+        case Request.RequestSend:
+            let SendAddress = Message["Address"] as string;
+            let SendAmount = Message["Amount"] as number;
+            let SendPaymentId = Message["PaymentId"] as string;
+            Transactions.Send(SendAddress, SendAmount, SendPaymentId).then(Transaction => {
                 SendResponse(Transaction);
             });
             return true;

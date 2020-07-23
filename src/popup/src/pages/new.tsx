@@ -39,12 +39,16 @@ class NewPage extends React.Component<RouteComponentProps> {
         // Test password strength
         let Regex = new RegExp("^(?=.{8,})");
         if (!Regex.test(Password.value)) {
-            App.Current.DisplayError("Password must be 8 characters or longer.", Password);
+            App.Current.DisplayError("Password must be 8 characters or longer.", {
+                Parent:Password
+            });
         }
 
         // Verify passwords match
         else if (Password.value !== ConfirmPassword.value) {
-            App.Current.DisplayError("Passwords do not match.", ConfirmPassword);
+            App.Current.DisplayError("Passwords do not match.", {
+                Parent: ConfirmPassword
+            });
         }
 
         // Passwords check out

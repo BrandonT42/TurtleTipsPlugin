@@ -14,7 +14,8 @@ import BackupPage from "./pages/backup";
 import LoginPage from "./pages/login";
 import HomePage from "./pages/home";
 import OptionsPage from "./pages/options";
-import WithdrawPage from "./pages/withdraw";
+import SendPage from "./pages/send";
+import ConfirmPage from "./pages/confirm";
 import DepositPage from "./pages/deposit";
 
 // Holds a reference to the current running app window
@@ -28,7 +29,8 @@ class App extends Component {
         Width: 300,
         Height: 1,
         ErrorMessage: React.createRef<HTMLParagraphElement>(),
-        LastError: ""
+        LastError: "",
+        Loading: React.createRef<HTMLDivElement>()
     }
 
     // Constructor
@@ -55,23 +57,23 @@ class App extends Component {
     }
 
     // Displays an error message and flashes the parent element
-    public DisplayError(Message:string, Parent?:HTMLElement) {
+    public DisplayError(Message:string, Params?:{Duration?:number, Parent?:HTMLElement}) {
         // Set error message
         this.setState({
             LastError: Message
         });
 
         // Flash parent element and focus it
-        if (Parent) {
-            Parent.animate([
+        if (Params?.Parent) {
+            Params?.Parent.animate([
                 { borderColor: "rgba(255, 255, 255, 0.5)" },
                 { borderColor: "#E27F7E" },
                 { borderColor: "#FFE4B4" }
             ], {
-                duration: 500,
+                duration: Params?.Duration ?? 500,
                 iterations: 1
             });
-            Parent.focus();
+            Params?.Parent.focus();
         }
 
         // Animate error message
@@ -85,6 +87,18 @@ class App extends Component {
             duration: 2000,
             iterations: 1
         });
+    }
+
+    // Shows loading icon
+    public StartLoading() {
+        this.state.Loading.current?.style.setProperty("opacity", "1");
+        this.state.Loading.current?.style.setProperty("z-index", "2");
+    }
+
+    // Hides loading icon
+    public DoneLoading() {
+        this.state.Loading.current?.style.setProperty("opacity", "0");
+        this.state.Loading.current?.style.setProperty("z-index", "-1");
     }
 
     // Render
@@ -106,7 +120,8 @@ class App extends Component {
                                 <Route path="/login" component={LoginPage}/>
                                 <Route path="/home" component={HomePage}/>
                                 <Route path="/options" component={OptionsPage}/>
-                                <Route path="/withdraw" component={WithdrawPage}/>
+                                <Route path="/send" component={SendPage}/>
+                                <Route path="/confirm" component={ConfirmPage}/>
                                 <Route path="/deposit" component={DepositPage}/>
                             </Switch>
                         </CSSTransition>
@@ -116,6 +131,9 @@ class App extends Component {
             <p className="ErrorMessage" ref={this.state.ErrorMessage}>
                 {this.state.LastError}
             </p>
+            <div className="Loading" ref={this.state.Loading}>
+                <div className="LoadingIcon"/>
+            </div>
         </div>
         );
     }

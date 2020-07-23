@@ -59,7 +59,7 @@ class HomePage extends React.Component<RouteComponentProps> {
     // Withdraw button clicked
     OnWithdrawClick() {
         this.setState({Opacity: 0});
-        Router.Route("/withdraw");
+        Router.Route("/send");
     }
 
     // Deposit button clicked
@@ -88,7 +88,7 @@ class HomePage extends React.Component<RouteComponentProps> {
                     <h2 className="FadeIn Delay200">Locked Balance:</h2>
                     <h3 className="FadeInPartial Delay 300">{this.state.Locked} {Config.Ticker}</h3>
                     <button className="FadeIn Delay400" onClick={this.OnDepositClick}>Deposit</button>
-                    <button className="FadeIn Delay450" onClick={this.OnWithdrawClick}>Withdraw</button>
+                    <button className="FadeIn Delay450" onClick={this.OnWithdrawClick}>Send</button>
             </div>
         );
     }

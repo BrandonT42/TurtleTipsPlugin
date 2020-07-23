@@ -1,4 +1,11 @@
-import { Request, WalletInfo } from "./types";
+import { Request, WalletInfo, Errorable, TransactionInfo } from "./types";
+import * as Config from "../config.json";
+
+// The last made transaction
+export let Transaction:TransactionInfo;
+export function SetTransaction(Value:TransactionInfo) {
+    Transaction = Value;
+}
 
 // Checks to see if a wallet has been created
 export async function CheckForWallet():Promise<boolean> {
@@ -64,6 +71,34 @@ export async function GetWalletInfo():Promise<WalletInfo> {
     return await new Promise(Resolve => {
         chrome.runtime.sendMessage({
             Request: Request.GetWalletInfo
+        }, Response => {
+            Resolve(Response);
+        });
+    });
+}
+
+// Requests a tip be created
+export async function Tip(PublicSpendKey:string, Amount:number):Promise<Errorable<TransactionInfo>> {
+    return await new Promise(Resolve => {
+        chrome.runtime.sendMessage({
+            Request: Request.RequestTip,
+            PublicSpendKey: PublicSpendKey,
+            Amount: Amount
+        }, Response => {
+            Resolve(Response);
+        });
+    });
+}
+
+// Requests a transaction be created
+export async function Send(Address:string, Amount:number, PaymentId?:string):Promise<Errorable<TransactionInfo>> {
+    return await new Promise(Resolve => {
+        let AtomicUnits = Amount * Math.pow(10, Config.DecimalPlaces);
+        chrome.runtime.sendMessage({
+            Request: Request.RequestSend,
+            Address: Address,
+            Amount: AtomicUnits,
+            PaymentId: PaymentId
         }, Response => {
             Resolve(Response);
         });

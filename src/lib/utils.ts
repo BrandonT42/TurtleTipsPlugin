@@ -28,16 +28,16 @@ export function Encrypt(Value:string, Password:string) {
 export function Decrypt(Value:string, Password:string):Errorable<string> {
     try {
         let Message = CryptoJS.AES.decrypt(Value, Password).toString(CryptoJS.enc.Utf8);
-        if (!Message) return { Success: false, Error: Error("Incorrect password") };
+        if (!Message) return { Success: false, Error: "Incorrect password" };
         else return { Success: true, Value: Message };
     }
     catch {
-        return { Success: false, Error: Error("Incorrect password") };
+        return { Success: false, Error: "Incorrect password" };
     }
 }
 
 // Gets the human-readable equivalent to an atomic unit value
-export function GetReadableAmount(AtomicUnits:number) {
+export function FormatAmount(AtomicUnits:number) {
     return AtomicUnits / Math.pow(10, Config.DecimalPlaces);
 }
 

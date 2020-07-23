@@ -1,4 +1,5 @@
 {
     "Coin": "TurtleCoin",
-    "Ticker": "TRTL"
+    "Ticker": "TRTL",
+    "DecimalPlaces": 2
 }

@@ -8,7 +8,6 @@ import * as App from "../App";
 class LoginPage extends React.Component<RouteComponentProps> {
     // Set default state
     state = {
-        Password: "",
         Opacity: 1
     };
 
@@ -23,20 +22,17 @@ class LoginPage extends React.Component<RouteComponentProps> {
         App.Current.Resize(300, 300);
 
         // Bind event handlers
-        this.OnPasswordChange = this.OnPasswordChange.bind(this);
         this.OnLoginClick = this.OnLoginClick.bind(this);
-    }
-
-    // Password input changed
-    OnPasswordChange(Event:React.ChangeEvent<HTMLInputElement>) {
-        this.setState({
-            Password: Event.target.value 
-        });
     }
 
     // Login form submitted
     OnLoginClick(Event:React.FormEvent<HTMLFormElement>) {
-        Wallet.Login(this.state.Password).then(Success => {
+        // Get form elements
+        let Children = Event.currentTarget.children;
+        let Password = Children.namedItem("password") as HTMLInputElement;
+        
+        // Attempt login
+        Wallet.Login(Password.value).then(Success => {
             // Login successful
             if (Success) {
                 this.setState({Opacity: 0});
@@ -45,7 +41,9 @@ class LoginPage extends React.Component<RouteComponentProps> {
 
             // Login failed
             else {
-                console.log("Login failed");
+                App.Current.DisplayError("Invalid password", {
+                    Parent: Password
+                });
             }
         });
         Event.preventDefault();
@@ -59,8 +57,7 @@ class LoginPage extends React.Component<RouteComponentProps> {
                 <h1 className="FadeIn Delay100">Welcome back.</h1>
                 <p className="FadeInPartial Delay200">Please enter your password to continue.</p>
                 <form onSubmit={this.OnLoginClick}>
-                    <input className="FadeIn Delay300" name="password" type="password"
-                        value={this.state.Password} onChange={this.OnPasswordChange} autoFocus/>
+                    <input className="FadeIn Delay300" name="password" type="password" autoFocus/>
                     <br/>
                     <button className="FadeIn Delay350">Login</button>
                 </form>

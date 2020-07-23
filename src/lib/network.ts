@@ -44,6 +44,7 @@ export async function GetRandomOutputs(Amounts:number[]) {
             out_key: string
         }[]
     }[];
+    if (!Response) return [];
 
     // Sort into a proper array of outputs
     let RandomOutputs:Interfaces.RandomOutput[][] = [];

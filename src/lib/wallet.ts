@@ -199,12 +199,13 @@ export async function GetWalletInfo():Promise<WalletInfo> {
             Height: 0,
             NetworkHeight: Network.Height,
             SyncPercentage: "0.00%",
-            Seed: undefined
+            Seed: undefined,
+            Address: undefined
         };
     }
 
     // Get converted locale string
-    let Converted = Info.Balance / Math.pow(10, Config.DecimalPlaces);
+    let Converted = Utils.FormatAmount(Info.Balance);
     let Balance = Converted.toLocaleString(undefined, {
         minimumFractionDigits: Config.DecimalPlaces,
         maximumFractionDigits: Config.DecimalPlaces
@@ -233,7 +234,8 @@ export async function GetWalletInfo():Promise<WalletInfo> {
         Height: Height,
         NetworkHeight: NetworkHeight,
         SyncPercentage: SyncPercentage,
-        Seed: Info.Keys.privateKey + Info.Height
+        Seed: Info.Keys.privateKey + Info.Height,
+        Address: Info.Address
     };
 }
 

@@ -8,6 +8,7 @@ With TurtleTips, the more computationally-expensive side of syncing your wallet 
 1. Clone locally, navigate to folder in terminal, run `npm i` to install dependencies.
 2. `cd src/popup` then `npm i` to install other required dependencies.
 3. Create a file named `config.json` in the `src/` directory and copy the contents of `example.config.json` into this new file. Modify as needed.
-4. Ensure TurtleTips backend is running.
-5. Run `npm run watch` in the root directory to begin debugging.
-6. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the newly created `dist` folder.
+4. Repeat step 3 within the `src/popup/src/` folder, with the second `example.config.json` file.
+5. Ensure TurtleTips backend is running.
+6. Run `npm run watch` in the root directory to begin debugging.
+7. In chrome, select `Menu > More tools > Extensions`, then click on `Load Unpacked` and select the newly created `dist` folder.

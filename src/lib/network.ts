@@ -62,14 +62,19 @@ export async function GetRandomOutputs(Amounts:number[]) {
 }
 
 // Broadcasts a transaction to the network
-export async function SendTransaction(Transaction:Transaction) {
+export async function SendTransaction(Transaction:string) {
     // Send transaction to daemon
     let Response = await Daemon.Post(Constants.DAEMON_API.SEND_TRANSACTION, {
-        tx_as_hex: Transaction.toBuffer()
+        tx_as_hex: Transaction
     });
+    console.log(Response);
 
-    // Check if transaction was sent without error
-    // TODO - verify this works
-    if (!Response.error) return true;
-    return false;
+    // Check is response exists
+    if (!Response) return false;
+
+    // Check if transaction failed
+    if (Response.status == "Failed") return false;
+
+    // Transaction successful
+    return true;
 }

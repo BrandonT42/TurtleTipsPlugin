@@ -1,5 +1,3 @@
-import { Transaction as GeneratedTransaction } from "turtlecoin-utils";// Lists all accepted messages
-
 export enum Request {
     // Checks whether or not a wallet exists
     CheckForWallet,
@@ -29,7 +27,7 @@ export enum Request {
     RequestTip,
 
     // Requests a transaction
-    RequestSend,
+    RequestTransaction,
 
     // Sends a transaction
     SendTransaction,
@@ -83,7 +81,7 @@ export type Errorable<T> = {
 // Created transaction information
 export type TransactionInfo = {
     // Raw transaction blob
-    Raw:GeneratedTransaction;
+    Raw:string;
 
     // Transaction hash
     Hash:string

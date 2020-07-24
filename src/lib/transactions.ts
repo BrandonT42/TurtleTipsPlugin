@@ -129,7 +129,7 @@ export async function CreateFusion():Promise<Errorable<Transaction>> {
         return {
             Success: true,
             Value: {
-                Raw: Transaction,
+                Raw: Transaction.toString(),
                 Hash: Transaction.hash,
                 Amount: 0,
                 Change: 0,
@@ -146,22 +146,10 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
         return { Success: false, Error: "Invalid payment id" };
     }
 
-    // Convert destinations to outputs and calculate transaction total
-    let DestinationOutputs:Interfaces.GeneratedOutput[] = [];
+    // Get transaction total
     let TransactionAmount = 0;
-    Destinations.forEach(Destination => {
-        // Attempt to generate outputs
-        try {
-            let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(
-                Destination.Address, Destination.Amount);
-            DestinationOutputs = DestinationOutputs.concat(GeneratedOutputs);
-            TransactionAmount += Destination.Amount;
-        }
-        // Failed to generate outputs from transfer array
-        catch(Error) {
-            return { Success: false, Error: "Invalid transfers array, could not generate outputs" };
-        }
-    });
+    Destinations.forEach(Destination => TransactionAmount += Destination.Amount);
+    console.log(Destinations);
 
     // Check that amount is valid
     if (TransactionAmount <= 0) {
@@ -189,15 +177,27 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
             index: Input.TransactionIndex,
             globalIndex: Input.GlobalIndex,
             amount: Input.Amount
-        })
+        });
 
         // Check if we've hit our quota
         if (InputTotal >= TransactionAmount) {
             // Set remaining change amount
             let Change = InputTotal - TransactionAmount;
 
-            // Start forming transaction destination output array
-            let Outputs = DestinationOutputs.slice();
+            // Generate transaction outputs
+            let Outputs:Interfaces.GeneratedOutput[] = [];
+            Destinations.forEach(Destination => {
+                // Attempt to generate outputs
+                try {
+                    let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(
+                        Destination.Address, Destination.Amount);
+                    Outputs = Outputs.concat(GeneratedOutputs);
+                }
+                // Failed to generate outputs from transfer array
+                catch(Error) {
+                    return { Success: false, Error: "Invalid transfers array, could not generate outputs" };
+                }
+            });
             if (Change > 0) {
                 let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(Wallet.Info.Address, Change);
                 Outputs = Outputs.concat(GeneratedOutputs);
@@ -208,39 +208,81 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
             const OutputsSize = Constants.OUTPUT_SIZE * Outputs.length;
             let TransactionSize = Constants.TRANSACTION_HEADER_SIZE + InputsSize + OutputsSize;
             let Fee = TurtleCoin.Utils.calculateMinimumTransactionFee(TransactionSize);
-            
+
             // Check if our input amount covers the required total
             let TotalAmount = TransactionAmount + Fee;
             if (InputTotal < TotalAmount) continue;
 
-            // Request random outputs from the network
-            let RandomOutputs:Interfaces.RandomOutput[][] = [];
-            RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
-
-            // Attempt to create a transaction
-            let Transaction: GeneratedTransaction;
-            try {
-                Transaction = await TurtleCoin.Utils.createTransaction(Outputs, Inputs,
-                    RandomOutputs, Config.Mixin, Fee, PaymentId);
-            }
-            catch (Error) {
-                return {
-                    Success: false,
-                    Error: Error.message
-                };
-            }
-
-            // Transaction was successful
-            return {
-                Success: true,
-                Value: {
-                    Raw: Transaction,
-                    Hash: Transaction.hash,
-                    Amount: Utils.FormatAmount(TransactionAmount),
-                    Change: Utils.FormatAmount(Change - Fee),
-                    Fee: Utils.FormatAmount(Fee)
+            // Attempt to make fee-per-byte transaction
+            while (true) {
+                // Calculate change amount
+                let Change = InputTotal - TransactionAmount - Fee;
+                console.log(`${Change} = ${InputTotal} - ${TransactionAmount} - ${Fee}`);
+        
+                // Create outputs
+                let Outputs:Interfaces.GeneratedOutput[] = [];
+                Destinations.forEach(Destination => {
+                    try {
+                        let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(
+                            Destination.Address, Destination.Amount);
+                        Outputs = Outputs.concat(GeneratedOutputs);
+                    }
+                    catch(Error) {
+                        return { Success: false, Error: "Invalid transfers array, could not generate outputs" };
+                    }
+                });
+        
+                // Add change transfer if needed
+                if (Change > 0) {
+                    let GeneratedOutputs = TurtleCoin.Utils.generateTransactionOutputs(Wallet.Info.Address, Change);
+                    Outputs = Outputs.concat(GeneratedOutputs);
                 }
-            };
+        
+                // Get random outputs from network
+                let RandomOutputs:Interfaces.RandomOutput[][] = [];
+                RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
+        
+                // Try to create transaction
+                let Transaction: GeneratedTransaction;
+                try {
+                    console.log(Outputs)
+                    console.log(Inputs)
+                    console.log(RandomOutputs)
+                    console.log(Config.Mixin)
+                    console.log;(Fee)
+                    console.log(PaymentId)
+                    Transaction = await TurtleCoin.Utils.createTransaction(Outputs, Inputs,
+                        RandomOutputs, Config.Mixin, Fee, PaymentId);
+                    console.log(JSON.stringify(Transaction));
+                    console.log(Transaction.toString());
+                }
+                catch (Error) {
+                    return { Success: false, Error: Error.message };
+                }
+        
+                // Calculate actual transaction fee
+                let ActualSize = Transaction!.size;
+                let ActualFee = TurtleCoin.Utils.calculateMinimumTransactionFee(ActualSize);
+        
+                // If fee is adequate, we are done
+                if (Fee >= ActualFee) {
+                    return {
+                        Success: true,
+                        Value: {
+                            Raw: Transaction.toString(),
+                            Hash: Transaction.hash,
+                            Amount: Utils.FormatAmount(TransactionAmount),
+                            Change: Utils.FormatAmount(Change - Fee),
+                            Fee: Utils.FormatAmount(Fee)
+                        }
+                    };
+                }
+        
+                // If inputs are not adequate, continue adding new inputs
+                if (TransactionAmount + ActualFee > InputTotal) {
+                    break;
+                }
+            }
         }
     }
 
@@ -286,7 +328,7 @@ export async function Send(Address:string, Amount:number, PaymentId?:string):Pro
     }*/
 
     // Check if wallet contains sufficient balance
-    let DonationAmount = Amount * Config.DonationPercentage;
+    let DonationAmount = Math.floor(Amount * Config.DonationPercentage);
     if (Wallet.Info.Balance < Amount + DonationAmount) {
         return { Success: false, Error: "Insufficient balance" };
     }

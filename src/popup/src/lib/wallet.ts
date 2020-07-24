@@ -78,7 +78,7 @@ export async function GetWalletInfo():Promise<WalletInfo> {
 }
 
 // Requests a tip be created
-export async function Tip(PublicSpendKey:string, Amount:number):Promise<Errorable<TransactionInfo>> {
+export async function CreateTip(PublicSpendKey:string, Amount:number):Promise<Errorable<TransactionInfo>> {
     return await new Promise(Resolve => {
         chrome.runtime.sendMessage({
             Request: Request.RequestTip,
@@ -91,14 +91,28 @@ export async function Tip(PublicSpendKey:string, Amount:number):Promise<Errorabl
 }
 
 // Requests a transaction be created
-export async function Send(Address:string, Amount:number, PaymentId?:string):Promise<Errorable<TransactionInfo>> {
+export async function CreateTransaction(Address:string, Amount:number, PaymentId?:string):Promise<Errorable<TransactionInfo>> {
     return await new Promise(Resolve => {
         let AtomicUnits = Amount * Math.pow(10, Config.DecimalPlaces);
         chrome.runtime.sendMessage({
-            Request: Request.RequestSend,
+            Request: Request.RequestTransaction,
             Address: Address,
             Amount: AtomicUnits,
             PaymentId: PaymentId
+        }, Response => {
+            Resolve(Response);
+        });
+    });
+}
+
+// Requests a transaction be broadcast to the network
+export async function SendTransaction():Promise<boolean> {
+    return await new Promise(Resolve => {
+        console.log("Sending: ");
+        console.log(Transaction.Raw);
+        chrome.runtime.sendMessage({
+            Request: Request.SendTransaction,
+            Transaction: Transaction.Raw
         }, Response => {
             Resolve(Response);
         });

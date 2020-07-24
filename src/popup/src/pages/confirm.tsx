@@ -22,7 +22,7 @@ class ConfirmPage extends React.Component<RouteComponentProps> {
         super(props);
 
         // Resize app window
-        App.Current.Resize(300, 170);
+        App.Current.Resize(300, 180);
 
         // Bind event handlers
         this.OnBackArrowClick = this.OnBackArrowClick.bind(this);
@@ -46,10 +46,21 @@ class ConfirmPage extends React.Component<RouteComponentProps> {
     }
 
     // Send transaction button was clicked
-    OnSendButtonClick(Event:React.MouseEvent<HTMLFormElement, MouseEvent>) {
-        // TODO - broadcast then print back transaction info
-        App.Current.DisplayError("TODO");
-        Event.preventDefault();
+    OnSendButtonClick(Event:React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        Wallet.SendTransaction().then(Success => {
+            console.log("Success: " + Success);
+            // Sent successfully
+            if (Success) {
+                App.Current.DisplayError("Transaction sent.", { Duration: 1000 });
+                this.setState({Opacity: 0});
+                Router.Route("/sent");
+            }
+
+            // Failed to send
+            else {
+                App.Current.DisplayError("Failed to send transaction, please try again.", { Duration: 1000 });
+            }
+        });
     }
 
     // Render
@@ -60,14 +71,14 @@ class ConfirmPage extends React.Component<RouteComponentProps> {
                 <br/>
                 <h1 className="FadeIn Delay100">Confirm Amount.</h1>
                 <p className="FadeInPartial Delay200">
-                    Do you really want to send <b>{this.state.Amount} {Config.Ticker}</b>?
+                    After fees, this transaction will cost you <b>{this.state.Amount + this.state.Fee} {Config.Ticker}</b>.
+                    Until this transaction processes on the network, <b>{this.state.Change} {Config.Ticker}</b> will also 
+                    be locked and temporarily unspendable.
                 </p>
                 <p className="FadeInPartial Delay300">
-                    This transaction will cost you <b>{this.state.Fee} {Config.Ticker}</b> to send, 
-                    and <b>{this.state.Change} {Config.Ticker}</b> will be temporarily locked until this 
-                    transaction processes.
+                    <b>Would you like to send this transaction?</b>
                 </p>
-                <button className="FadeIn Delay400">Send Transaction</button>
+                <button className="FadeIn Delay400" onClick={this.OnSendButtonClick}>Send Transaction</button>
             </div>
         );
     }

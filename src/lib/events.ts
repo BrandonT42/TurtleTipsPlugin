@@ -86,7 +86,7 @@ function OnMessage(Message, Sender, SendResponse) {
             });
             return true;
 
-        case Request.RequestSend:
+        case Request.RequestTransaction:
             let SendAddress = Message["Address"] as string;
             let SendAmount = Message["Amount"] as number;
             let SendPaymentId = Message["PaymentId"] as string;
@@ -96,10 +96,10 @@ function OnMessage(Message, Sender, SendResponse) {
             return true;
 
         case Request.SendTransaction:
-            let Transaction = Message["Transaction"] as Transaction;
+            let Transaction = Message["Transaction"] as string;
             Network.SendTransaction(Transaction).then(Success => {
                 SendResponse(Success);
-            })
+            });
             return true;
 
         case Request.Wipe:

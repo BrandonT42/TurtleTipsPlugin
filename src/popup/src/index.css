@@ -97,6 +97,7 @@ textarea {
 
 /* Bold text */
 b {
+    opacity: 1 !important;
     font-weight: 700;
     color: #FFE4B4;
 }

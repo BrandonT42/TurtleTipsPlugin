@@ -44,7 +44,7 @@ class SendPage extends React.Component<RouteComponentProps> {
         let PaymentId = Children.namedItem("paymentid") as HTMLInputElement;
 
         // Attempt to create transaction
-        Wallet.Send(Address.value, +Amount.value, PaymentId.value).then(Response => {
+        Wallet.CreateTransaction(Address.value, +Amount.value, PaymentId.value).then(Response => {
             // Check for an existing response
             if (!Response) {
                 App.Current.DisplayError("Failed to create transaction");
@@ -61,10 +61,9 @@ class SendPage extends React.Component<RouteComponentProps> {
             Wallet.SetTransaction(Response.Value);
             this.setState({Opacity: 0});
             Router.Route("/confirm");
-        });
+        }).finally(() => App.Current.DoneLoading());
 
-        // Finish loading and prevent form submit
-        App.Current.DoneLoading();
+        // Prevent form submit
         Event.preventDefault();
     }
 

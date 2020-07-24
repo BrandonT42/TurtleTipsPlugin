@@ -1,4 +1,4 @@
-import { KeyPair, Transaction as GeneratedTransaction } from "turtlecoin-utils";
+import { KeyPair } from "turtlecoin-utils";
 
 // This contains input data which we will store locally
 export type Input = {
@@ -88,7 +88,7 @@ export type Transfer = {
 // Created transaction information
 export type Transaction = {
     // Raw transaction blob
-    Raw:GeneratedTransaction;
+    Raw:string;
 
     // Transaction hash
     Hash:string
@@ -193,7 +193,7 @@ export enum Request {
     RequestTip,
 
     // Requests a transaction
-    RequestSend,
+    RequestTransaction,
 
     // Sends a transaction
     SendTransaction,

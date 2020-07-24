@@ -149,7 +149,6 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
     // Get transaction total
     let TransactionAmount = 0;
     Destinations.forEach(Destination => TransactionAmount += Destination.Amount);
-    console.log(Destinations);
 
     // Check that amount is valid
     if (TransactionAmount <= 0) {
@@ -217,7 +216,6 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
             while (true) {
                 // Calculate change amount
                 let Change = InputTotal - TransactionAmount - Fee;
-                console.log(`${Change} = ${InputTotal} - ${TransactionAmount} - ${Fee}`);
         
                 // Create outputs
                 let Outputs:Interfaces.GeneratedOutput[] = [];
@@ -245,16 +243,8 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
                 // Try to create transaction
                 let Transaction: GeneratedTransaction;
                 try {
-                    console.log(Outputs)
-                    console.log(Inputs)
-                    console.log(RandomOutputs)
-                    console.log(Config.Mixin)
-                    console.log;(Fee)
-                    console.log(PaymentId)
                     Transaction = await TurtleCoin.Utils.createTransaction(Outputs, Inputs,
                         RandomOutputs, Config.Mixin, Fee, PaymentId);
-                    console.log(JSON.stringify(Transaction));
-                    console.log(Transaction.toString());
                 }
                 catch (Error) {
                     return { Success: false, Error: Error.message };

@@ -20,10 +20,6 @@ async function Start() {
     // Initialize database connection
     await Database.Init();
 
-    // TODO - remove debug code
-    await Wallet.Wipe();
-    await Database.Clear();
-
     // Initialize network monitor
     await Network.Init(CancellationToken);
 

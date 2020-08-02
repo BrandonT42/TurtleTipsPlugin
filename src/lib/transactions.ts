@@ -101,6 +101,12 @@ export async function CreateFusion():Promise<Errorable<Transaction>> {
         // Request random outputs from the network
         let RandomOutputs:Interfaces.RandomOutput[][] = [];
         RandomOutputs = await Network.GetRandomOutputs(FusionInputs.map(Input => Input.amount));
+        if (!RandomOutputs) {
+            return {
+                Success: false,
+                Error: "Failed to get random outputs from network"
+            }
+        }
 
         // Attempt to create a fusion transaction
         let Transaction: GeneratedTransaction;
@@ -239,6 +245,12 @@ async function CreateSimple(Destinations:Transfer[], PaymentId?:string):Promise<
                 // Get random outputs from network
                 let RandomOutputs:Interfaces.RandomOutput[][] = [];
                 RandomOutputs = await Network.GetRandomOutputs(Inputs.map(Input => Input.amount));
+                if (!RandomOutputs) {
+                    return {
+                        Success: false,
+                        Error: "Failed to get random outputs from network"
+                    }
+                }
         
                 // Try to create transaction
                 let Transaction: GeneratedTransaction;

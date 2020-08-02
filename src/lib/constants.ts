@@ -4,7 +4,8 @@ import * as Config from "../config.json";
 export enum BACKEND_API {
     HEIGHT = "/api/v0/height",
     REGISTER_KEY = "/api/v0/register",
-    HOSTS = "/api/v0/hosts"
+    HOSTS = "/api/v0/hosts",
+    SYNC = "/api/v0/sync"
 };
 
 // Daemon API endpoints
@@ -94,3 +95,6 @@ export const MAXIMUM_FUSION_INPUT_COUNT = MAXIMUM_FUSION_SIZE / INPUT_SIZE;
 
 // Desired input to output ratio for fusion transactions
 export const FUSION_INPUT_RATIO = 4;
+
+// Max amount of time a signature is valid for (in ms)
+export const SIGNATURE_TIME_DELTA = 300000;

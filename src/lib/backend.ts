@@ -4,7 +4,7 @@ import * as Async from "./async";
 import * as Wallet from "./wallet";
 import * as Database from "./database";
 import { Http } from "./http";
-import { SyncData, Host } from "./types";
+import { SyncData } from "./types";
 
 // Connection to TurtleTips backend
 const Backend = new Http(Config.BackendHost, Config.BackendPort, Config.BackendHttps);
@@ -21,9 +21,13 @@ export async function Init(CancellationToken:Async.CancellationToken) {
     Async.Loop(async () => {
         // Request host list from backend
         let Response = await Backend.Get(Constants.BACKEND_API.HOSTS);
-        if (Response && Response.hosts) {
+
+        // Update local host list
+        if (Response
+            && Response.Authenticated === true
+            && Response.Value.hosts) {
             let Hosts = [];
-            Response.hosts.forEach(Host => {
+            Response.Value.hosts.forEach(Host => {
                 Hosts.push({
                     Host: Host.host,
                     PublicKey: Host.pubkey
@@ -45,9 +49,11 @@ export async function Init(CancellationToken:Async.CancellationToken) {
         }
 
         // Request height from backend
-        let Response = await Backend.Get(Constants.BACKEND_API.HEIGHT);
-        if (Response && Response.height) {
-            Height = Response.height;
+        let Response = await Backend.Get(Constants.BACKEND_API.HEIGHT, undefined, Wallet.Info.Keys);
+        if (Response
+            && Response.Authenticated
+            && Response.Value.height) {
+            Height = Response.Value.height;
             Connected = true;
         }
         else Connected = false;
@@ -63,7 +69,9 @@ export async function RegisterSpendKey():Promise<boolean> {
     }, Wallet.Info.Keys);
 
     // Check if successful
-    if (Response && Response.Success && Response.Success === true) {
+    if (Response
+        && Response.Authenticated
+        && Response.Value.Success === true) {
         Wallet.Info.Registered = true;
         return true;
     }
@@ -74,9 +82,16 @@ export async function RegisterSpendKey():Promise<boolean> {
 
 // Gets a chunk of wallet sync data
 export async function GetSyncData(Height:number, Count:number):Promise<SyncData> {
-    return await Backend.Post("/api/v0/sync", {
+    let Response = await Backend.Post(Constants.BACKEND_API.SYNC, {
         pubkey: Wallet.Info.Keys.publicKey,
         height: Height,
         count: Count
-    }, Wallet.Info.Keys) as SyncData;
+    }, Wallet.Info.Keys);
+    if (Response
+        && Response.Authenticated
+        && Response.Value.Inputs
+        && Response.Value.Outputs) {
+        return Response.Value as SyncData
+    }
+    else return undefined;
 }

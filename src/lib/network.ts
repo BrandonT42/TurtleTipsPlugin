@@ -2,7 +2,7 @@ import * as Async from "./async";
 import * as Config from "../config.json";
 import * as Constants from "./constants";
 import { Http } from "./http";
-import { Transaction, Interfaces } from "turtlecoin-utils";
+import { Interfaces } from "turtlecoin-utils";
 
 // Connection to daemon/blockapi
 const Daemon = new Http(Config.DaemonHost, Config.DaemonPort, Config.DaemonHttps);
@@ -19,8 +19,9 @@ export async function Init(CancellationToken:Async.CancellationToken) {
     Async.Loop(async () => {
         // Request height from daemon
         let Response = await Daemon.Get(Constants.DAEMON_API.HEIGHT);
-        if (Response && Response.network_height) {
-            Height = Response.network_height;
+        if (Response
+            && Response.Value.network_height) {
+            Height = Response.Value.network_height;
             Connected = true;
         }
         else Connected = false;
@@ -37,18 +38,20 @@ export async function GetRandomOutputs(Amounts:number[]) {
     let Response = await Daemon.Post("/randomOutputs", {
         amounts: Amounts,
         mixin: Config.Mixin + 1
-    }) as {
+    });
+    if (!Response) return undefined;
+    let Outs = Response.Value as {
         amount:number,
         outs: {
             global_amount_index: number,
             out_key: string
         }[]
     }[];
-    if (!Response) return [];
+    if (!Outs) return [];
 
     // Sort into a proper array of outputs
     let RandomOutputs:Interfaces.RandomOutput[][] = [];
-    Response.forEach(Output => {
+    Outs.forEach(Output => {
         let Participant:Interfaces.RandomOutput[] = [];
         Output.outs.forEach(Out => {
             Participant.push({
@@ -67,13 +70,12 @@ export async function SendTransaction(Transaction:string) {
     let Response = await Daemon.Post(Constants.DAEMON_API.SEND_TRANSACTION, {
         tx_as_hex: Transaction
     });
-    console.log(Response);
 
     // Check is response exists
     if (!Response) return false;
 
     // Check if transaction failed
-    if (Response.status == "Failed") return false;
+    if (Response.Value.status == "Failed") return false;
 
     // Transaction successful
     return true;

@@ -72,7 +72,11 @@ export async function Start(CancellationToken:Async.CancellationToken) {
 
         // Get sync data for this chunk
         let SyncData = await Backend.GetSyncData(Height + 1, ChunkSize);
-        if (!SyncData || SyncData === undefined) return;
+        if (!SyncData || SyncData === undefined) {
+            // Sleep then start over
+            await Async.Sleep(5000, CancellationToken);
+            return;
+        }
         
         // Scan outputs for received amounts
         let BalanceChange = 0;

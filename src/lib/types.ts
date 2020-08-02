@@ -201,3 +201,9 @@ export enum Request {
     // Wipes all stored and cached data
     Wipe
 }
+
+// HTTP/S response object
+export type Response = {
+    Value: any;
+    Authenticated: boolean;
+}

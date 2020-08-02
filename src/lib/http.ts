@@ -5,7 +5,6 @@ import * as QueryString from "querystring";
 import * as Constants from "./constants";
 import * as Config from "../config.json";
 import { KeyPair } from "turtlecoin-utils";
-import { StringToHex, Hash } from "./utils";
 import { Response } from "./types";
 
 // Handles HTTP API requests
@@ -25,9 +24,6 @@ export class Http {
     private async SignRequest(Date:string, Payload:string, Path:string, Keys:KeyPair):Promise<string> {
         // Create a seed for us to sign
         let Seed = Date + Payload + Path;
-        if (Seed.endsWith("?")) Seed = Seed.substr(0, Seed.length - 1);
-        Seed = StringToHex(Seed);
-        Seed = Hash(Seed);
 
         // Generate signature and convert it to base64
         let Signature = await TurtleCoin.Utils.signMessage(Seed, Keys.privateKey);
@@ -76,8 +72,6 @@ export class Http {
         // Create seed hash
         let Seed = RequestDate + RequestBody + Response.url;
         if (Seed.endsWith("?")) Seed = Seed.substr(0, Seed.length - 1);
-        Seed = StringToHex(Seed);
-        Seed = Hash(Seed);
 
         // Verify signature
         try {

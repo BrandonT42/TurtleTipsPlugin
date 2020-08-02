@@ -5,7 +5,8 @@ export enum BACKEND_API {
     HEIGHT = "/api/v0/height",
     REGISTER_KEY = "/api/v0/register",
     HOSTS = "/api/v0/hosts",
-    SYNC = "/api/v0/sync"
+    SYNC = "/api/v0/sync",
+    REGISTER_HOST_KEY = "/api/v0/host"
 };
 
 // Daemon API endpoints

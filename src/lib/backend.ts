@@ -95,3 +95,17 @@ export async function GetSyncData(Height:number, Count:number):Promise<SyncData>
     }
     else return undefined;
 }
+
+// Registers a host public key with the backend
+export async function RegisterHostKey(Host:string):Promise<boolean> {
+    let Response = await Backend.Post(Constants.BACKEND_API.REGISTER_HOST_KEY, {
+        host: Host
+    }, Wallet.Info.Keys);
+    if (Response
+        && Response.Authenticated
+        && Response.Value
+        && Response.Value.Success) {
+        return Response.Value.Success as boolean;
+    }
+    else return false;
+}

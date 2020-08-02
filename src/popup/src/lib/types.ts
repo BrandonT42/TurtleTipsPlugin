@@ -20,8 +20,8 @@ export enum Request {
     // Gets wallet information, including balance and sync state
     GetWalletInfo,
 
-    // Requests a domain's registered key
-    RequestDomainKey,
+    // Registers a host public key
+    RegisterHostKey,
 
     // Requests a tip to the current domain
     RequestTip,

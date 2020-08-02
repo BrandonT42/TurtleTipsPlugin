@@ -2,9 +2,7 @@ import * as Network from "./network";
 import * as Wallet from "./wallet";
 import * as Transactions from "./transactions";
 import * as Database from "./database";
-import * as CoinGecko from "./coingecko";
-import * as Options from "./options";
-import { Transaction } from "turtlecoin-utils";
+import * as Backend from "./backend";
 import { Request } from "./types";
 
 // Assigns event handlers
@@ -74,8 +72,11 @@ function OnMessage(Message, Sender, SendResponse) {
             });
             return true;
 
-        case Request.RequestDomainKey:
-            SendResponse();
+        case Request.RegisterHostKey:
+            let Host = Message["Host"] as string;
+            Backend.RegisterHostKey(Host).then(PublicKey => {
+                SendResponse(PublicKey);
+            });
             return true;
 
         case Request.RequestTip:

@@ -1,4 +1,5 @@
 import * as Database from "./database";
+import * as Backend from "./backend";
 
 // The host name of the current tab
 export let Host:string;
@@ -37,14 +38,15 @@ async function OnTabUpdated(TabInfo:any) {
 
         // Check if host is stored in database
         let HostInfo = await Database.GetHost(Host);
-        if (!HostInfo) {
-            Reset();
+        if (HostInfo) {
+            // Update host information
+            Eligible = true;
+            PublicKey = HostInfo.PublicKey;
+            chrome.browserAction.setBadgeText({text:"✓"});
             return;
         }
 
-        // Update host information
-        Eligible = true;
-        PublicKey = HostInfo.PublicKey;
-        chrome.browserAction.setBadgeText({text:"✓"});
+        // Otherwise, reset
+        else Reset();
     });
 }
